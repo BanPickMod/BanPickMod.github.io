@@ -12,7 +12,9 @@ const state = {
 };
 
 const AVAILABLE_ICONS = new Set([
-  'science_vessel', 'energizer', 'corsair', 'aberration', 'defiler', 'tyrannozor'
+  'firebat', 'goliath', 'warhound', 'wraith', 'science_vessel',
+  'dragoon', 'energizer', 'corsair', 'scout', 'reaver', 'arbiter',
+  'aberration', 'ravasaur', 'defiler', 'queen', 'tyrannozor', 'guardian'
 ]);
 
 const MONOGRAMS = {
