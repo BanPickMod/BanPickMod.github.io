@@ -1,278 +1,196 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>스타크래프트 II 밴픽 모드 (BPM) — 공식 데이터베이스 & 쇼케이스</title>
-  <meta name="description" content="스타크래프트 2 밴픽 모드(BanPickMod)의 신규/확장 유닛 기본 스펙, 대체 페어 비교, 전용 업그레이드 수치, 방 생성 가이드 및 지원 맵 공식 쇼케이스">
-  
-  <!-- Web Fonts (SF Cybernetic SC2 Aesthetic) -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#071019">
+  <meta name="description" content="스타크래프트 II 밴픽 모드 BPM의 현재 빌드, 밴·히든 픽 규칙, 확장 유닛, 편의성 HUD, 지원 맵과 플레이 가이드">
+  <title>BPM — StarCraft II BanPick Mod</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-  
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
   <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
 </head>
 <body>
+  <a class="skip-link" href="#main">본문 바로가기</a>
 
-  <!-- 1. Header & GNB -->
-  <header class="site-header">
-    <div class="container nav-content">
-      <a href="#home" class="brand-logo">
-        <span class="logo-badge">BPM</span>
-        <span class="brand-title">BANPICK MOD</span>
+  <header class="site-header" data-header>
+    <div class="shell header-inner">
+      <a class="brand" href="#home" aria-label="BPM 홈">
+        <span class="brand-mark" aria-hidden="true">BPM</span>
+        <span class="brand-copy">
+          <strong>BANPICK MOD</strong>
+          <small>STARCRAFT II EXTENSION</small>
+        </span>
       </a>
 
-      <nav>
-        <ul class="nav-links">
-          <li><a href="#units" class="active">신규 유닛 도감</a></li>
-          <li><a href="#modified-units">기존 유닛 개편</a></li>
-          <li><a href="#system">시스템 조정</a></li>
-          <li><a href="#tutorials">플레이 가이드</a></li>
-          <li><a href="#maps">지원 맵</a></li>
-          <li><a href="#patches">패치 내역</a></li>
-        </ul>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primaryNav">
+        <span class="sr-only">메뉴 열기</span>
+        <span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
+      </button>
+
+      <nav id="primaryNav" class="primary-nav" aria-label="주요 메뉴">
+        <a href="#overview">핵심 기능</a>
+        <a href="#flow">밴픽 규칙</a>
+        <a href="#units">유닛</a>
+        <a href="#features">편의성</a>
+        <a href="#guide">플레이</a>
+        <a href="#updates">업데이트</a>
       </nav>
 
-      <div class="nav-actions">
-        <a href="https://github.com/BanPickMod/BanPickMod" target="_blank" rel="noopener noreferrer" class="btn-repo">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
-          </svg>
-          GitHub
-        </a>
-      </div>
+      <a class="header-version" href="#updates"><span data-version>v1.4.1</span><small>BUILD</small></a>
     </div>
   </header>
 
-  <main>
-    <!-- 2. Hero Section -->
-    <section id="home" class="hero-section">
-      <div class="container hero-content">
-        <div class="version-pill">
-          <span class="live-dot"></span>
-          <span>BPM CORE v1.4 STABLE · 배틀넷 공식 적용</span>
+  <main id="main">
+    <section id="home" class="hero section-grid" aria-labelledby="heroTitle">
+      <div class="hero-grid" aria-hidden="true"></div>
+      <div class="hero-orbit hero-orbit-one" aria-hidden="true"></div>
+      <div class="hero-orbit hero-orbit-two" aria-hidden="true"></div>
+
+      <div class="shell hero-inner">
+        <div class="hero-copy">
+          <p class="eyebrow" data-eyebrow>STARCRAFT II · COMPETITIVE EXTENSION</p>
+          <div class="release-chip"><span class="status-dot"></span><b data-release-label>CURRENT BUILD</b><span data-release-status>현재 소스·배포 패키지 기준</span></div>
+          <h1 id="heroTitle" data-headline>밴으로 흔들고,<br>히든 픽으로 완성하는 전장.</h1>
+          <p class="hero-summary" data-summary>BPM은 밴픽과 확장 유닛, 선택형 편의성 HUD를 하나의 1대1 경기 흐름으로 연결합니다.</p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#flow">경기 방식 보기 <span aria-hidden="true">→</span></a>
+            <a class="button button-ghost" href="#units">유닛 탐색하기</a>
+          </div>
+          <p class="build-note"><span data-release-date>2026-09-14</span> 기준 · 배틀넷 공개 상태는 게임 내에서 별도 확인해 주세요.</p>
         </div>
 
-        <h1 class="hero-title">STARCRAFT II BANPICK MOD</h1>
-        <p class="hero-subtitle">
-          정형화된 빌드를 깨뜨리는 밴픽 전략과 17종의 히든 선택 유닛.<br>
-          스펙 중심의 팩트 시트와 전술 시연 영상을 확인하고 배틀넷에서 즉시 플레이해 보세요.
-        </p>
+        <aside class="hero-console" aria-label="현재 빌드 요약">
+          <div class="console-topline"><span>TACTICAL OVERVIEW</span><span class="console-live">LIVE DATA</span></div>
+          <div class="console-display">
+            <span class="console-kicker">CURRENT CORE</span>
+            <strong data-version>v1.4.1</strong>
+            <span class="console-rule"></span>
+            <p>BAN → HIDDEN PICK → DEPLOY</p>
+          </div>
+          <div id="heroStats" class="stats-grid" aria-label="프로젝트 주요 수치"></div>
+        </aside>
+      </div>
+    </section>
 
-        <div class="hero-actions">
-          <a href="#units" class="btn-primary">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9h-4v4h-2v-4H9V9h4V5h2v4h4v2z"/>
-            </svg>
-            확장 유닛 스펙 보러가기
-          </a>
-          <a href="#tutorials" class="btn-secondary">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
-            </svg>
-            방 생성 튜토리얼
-          </a>
-        </div>
+    <section id="overview" class="section section-muted" aria-labelledby="overviewTitle">
+      <div class="shell">
+        <header class="section-heading heading-split">
+          <div><p class="section-kicker">WHAT CHANGES</p><h2 id="overviewTitle">밀리의 익숙함 위에<br>선택의 변수를 더합니다.</h2></div>
+          <p>BPM의 변화는 유닛 추가에 그치지 않습니다. 경기 전 선택, 경기 중 정보, 관전 경험까지 하나의 규칙으로 연결됩니다.</p>
+        </header>
+        <div id="pillarsGrid" class="pillar-grid"></div>
+      </div>
+    </section>
 
-        <!-- Quick Facts Bar -->
-        <div class="quick-stats-bar">
-          <div class="stat-item">
-            <div class="stat-num">17</div>
-            <div class="stat-label">확장 & 대체 유닛</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-num">16</div>
-            <div class="stat-label">전용 업그레이드</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-num">3</div>
-            <div class="stat-label">공식 지원 전장</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-num">0 / 1 / 3 / 5</div>
-            <div class="stat-label">선택형 밴 규칙</div>
-          </div>
+    <section id="flow" class="section" aria-labelledby="flowTitle">
+      <div class="shell">
+        <header class="section-heading">
+          <p class="section-kicker">MATCH FLOW</p>
+          <h2 id="flowTitle">한 경기, 세 개의 단계</h2>
+          <p>누구를 막을지 결정하고, 무엇을 숨겨 고를지 선택한 뒤, 결과가 적용된 전장에서 승부합니다.</p>
+        </header>
+        <ol id="draftFlow" class="flow-list"></ol>
+        <div class="rule-strip" aria-label="밴 규칙 요약">
+          <span>선택형 밴 수</span><strong>0 · 1 · 3 · 5</strong><span class="rule-separator" aria-hidden="true"></span><span>라운드 구성</span><strong>PUBLIC · SELF · SHADOW</strong>
         </div>
       </div>
     </section>
 
-    <!-- 3. Units & Upgrades Showcase -->
-    <section id="units" class="section-wrapper">
-      <div class="container">
-        <div class="section-header">
-          <div class="section-tag">DATABASE & SPEC DIFF</div>
-          <h2 class="section-title">신규 & 확장 유닛 도감</h2>
-          <p class="section-desc">불필요한 서술 없이 기본 스펙, 페어 대상과의 수치 비교(Before ➔ After), 전용 연구 효과를 확인하세요.</p>
-        </div>
+    <section id="units" class="section section-units" aria-labelledby="unitsTitle">
+      <div class="shell">
+        <header class="section-heading heading-split">
+          <div><p class="section-kicker">UNIT DATABASE</p><h2 id="unitsTitle">17종 확장 유닛 탐색기</h2></div>
+          <p>카드에서는 핵심 역할과 비용만 빠르게 비교하고, 상세 보기에서 페어 차이와 전용 연구를 확인할 수 있습니다.</p>
+        </header>
 
-        <!-- Filter Controls -->
-        <div class="filter-toolbar">
-          <div class="race-tabs">
-            <button class="tab-btn active" data-race="all">전체 유닛 (17)</button>
-            <button class="tab-btn" data-race="terran">테란 (5)</button>
-            <button class="tab-btn" data-race="protoss">프로토스 (6)</button>
-            <button class="tab-btn" data-race="zerg">저그 (6)</button>
+        <div class="unit-toolbar" aria-label="유닛 필터">
+          <div class="filter-group" role="group" aria-label="종족 필터">
+            <button class="filter-button is-active" type="button" data-race="all" aria-pressed="true">전체 <span>17</span></button>
+            <button class="filter-button" type="button" data-race="terran" aria-pressed="false">테란 <span>5</span></button>
+            <button class="filter-button" type="button" data-race="protoss" aria-pressed="false">프로토스 <span>6</span></button>
+            <button class="filter-button" type="button" data-race="zerg" aria-pressed="false">저그 <span>6</span></button>
           </div>
-
-          <div class="search-box">
-            <input type="text" id="searchInput" class="search-input" placeholder="유닛명 / 페어 / 건물 검색..." />
-          </div>
+          <label class="search-field">
+            <span class="sr-only">유닛명, 페어 또는 생산 건물 검색</span>
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"/></svg>
+            <input id="unitSearch" type="search" placeholder="유닛명 · 페어 · 생산 건물 검색" autocomplete="off">
+          </label>
         </div>
+        <div class="results-line"><span id="unitResultCount" aria-live="polite">17개 유닛</span><span>카드를 선택하면 상세 정보가 열립니다.</span></div>
+        <div id="unitsGrid" class="unit-grid" aria-busy="true"></div>
+      </div>
+    </section>
 
-        <!-- Callout Banner to Modified Units -->
-        <div class="modified-units-callout">
-          <div class="callout-content">
-            <span class="callout-badge">NEW ABILITIES</span>
-            <span class="callout-text">기존 밀리 유닛에 추가된 능력(밤까마귀의 <strong>수리 비행정 배치</strong>, 살모사의 <strong>호신용 평타</strong> 등)이 궁금하신가요?</span>
-          </div>
-          <a href="#modified-units" class="callout-btn">기존 유닛 개편 도감 바로가기 ↓</a>
-        </div>
+    <section id="features" class="section section-muted" aria-labelledby="featuresTitle">
+      <div class="shell">
+        <header class="section-heading heading-split">
+          <div><p class="section-kicker">v1.4.1 · QUALITY OF LIFE</p><h2 id="featuresTitle">필요할 때 켜는<br>전술 정보 인터페이스</h2></div>
+          <div class="option-note"><span>LOBBY OPTION</span><strong>편의성 모드 · 기본 켜짐</strong><p>방장이 경기 시작 전 켜거나 끌 수 있습니다.</p></div>
+        </header>
+        <div id="convenienceGrid" class="convenience-grid"></div>
 
-        <!-- Unit Cards Grid -->
-        <div id="unitsGrid" class="units-grid">
-          <!-- Dynamically populated by app.js -->
+        <div class="subsection-heading"><div><p class="section-kicker">BALANCE & REWORK</p><h3>기존 유닛과 시스템 조정</h3></div><p>확장 유닛뿐 아니라 기존 밀리 유닛의 역할과 조작 경험도 함께 다듬었습니다.</p></div>
+        <div id="reworkGrid" class="rework-grid"></div>
+        <div id="systemGrid" class="system-grid"></div>
+      </div>
+    </section>
+
+    <section id="guide" class="section" aria-labelledby="guideTitle">
+      <div class="shell">
+        <header class="section-heading">
+          <p class="section-kicker">PLAY GUIDE</p>
+          <h2 id="guideTitle">방 생성부터 경기 시작까지</h2>
+          <p>일반 1대1, 옵저버 포함 경기, 밴픽과 편의성 기능을 필요한 순서대로 확인하세요.</p>
+        </header>
+        <div class="guide-layout">
+          <div id="guideTabs" class="guide-tabs" role="tablist" aria-label="플레이 가이드 단계"></div>
+          <article id="guidePanel" class="guide-panel" role="tabpanel" tabindex="0"></article>
         </div>
       </div>
     </section>
 
-    <!-- 4. Modified Existing Units & Added Abilities Section -->
-    <section id="modified-units" class="section-wrapper section-alt">
-      <div class="container">
-        <div class="section-header">
-          <div class="section-tag">EXISTING UNIT REWORKS & ABILITIES</div>
-          <h2 class="section-title">기존 유닛 개편 & 신규 능력 도감</h2>
-          <p class="section-desc">새로운 유닛들 외에도 밤까마귀의 [수리 비행정], 살모사의 [호신용 평타 무기] 등 기존 밀리(Melee) 유닛들에 새롭게 추가되거나 개편된 핵심 능력과 스펙을 한눈에 확인하세요.</p>
-        </div>
-
-        <!-- Filter Controls for Modified Units -->
-        <div class="filter-toolbar">
-          <div class="mod-race-tabs">
-            <button class="mod-tab-btn active" data-mod-race="all">전체 개편 유닛 (4)</button>
-            <button class="mod-tab-btn" data-mod-race="terran">테란: 밤까마귀 · 해방선 (2)</button>
-            <button class="mod-tab-btn" data-mod-race="zerg">저그: 살모사 · 대군주 (2)</button>
-          </div>
-        </div>
-
-        <!-- Modified Units Grid Container -->
-        <div id="modifiedUnitsGrid" class="modified-units-grid">
-          <!-- Dynamically populated by app.js -->
-        </div>
+    <section id="maps" class="section section-maps" aria-labelledby="mapsTitle">
+      <div class="shell">
+        <header class="section-heading heading-split">
+          <div><p class="section-kicker">BATTLEGROUNDS</p><h2 id="mapsTitle">지원 전장 3종</h2></div>
+          <p>배틀넷 사용자 지정 섬멸전에서 검색어를 입력해 전장을 찾을 수 있습니다.</p>
+        </header>
+        <div id="mapsGrid" class="map-grid"></div>
       </div>
     </section>
 
-    <!-- 5. System Balance Adjustments -->
-    <section id="system" class="section-wrapper">
-      <div class="container">
-        <div class="section-header">
-          <div class="section-tag">GLOBAL SYSTEM BALANCING</div>
-          <h2 class="section-title">시스템 밸런스 & 편의 조정</h2>
-          <p class="section-desc">일반 밀리(Melee) 섬멸전과 비교하여 BPM 모드에 기본 적용된 조정 사항입니다.</p>
-        </div>
-
-        <div id="systemDiffsGrid" class="system-diffs-grid">
-          <!-- Dynamically populated by app.js -->
-        </div>
-      </div>
-    </section>
-
-    <!-- 5. Tutorials & Guides -->
-    <section id="tutorials" class="section-wrapper">
-      <div class="container">
-        <div class="section-header">
-          <div class="section-tag">STEP-BY-STEP PLAY GUIDE</div>
-          <h2 class="section-title">플레이 가이드 & 방 생성 방법</h2>
-          <p class="section-desc">배틀넷 방 생성부터 밴픽 진행 룰까지 단계별 가이드와 영상을 확인하세요.</p>
-        </div>
-
-        <div class="tutorial-container">
-          <div id="tutorialNav" class="tutorial-nav">
-            <!-- Dynamically populated by app.js -->
-          </div>
-
-          <div id="tutorialContent" class="tutorial-main">
-            <!-- Dynamically populated by app.js -->
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 6. Supported Maps -->
-    <section id="maps" class="section-wrapper">
-      <div class="container">
-        <div class="section-header">
-          <div class="section-tag">OFFICIAL BATTLEGROUNDS</div>
-          <h2 class="section-title">정식 지원 맵</h2>
-          <p class="section-desc">밴픽 모드 트리거 및 인게임 HUD가 내장된 공식 2인용 전장 3종입니다.</p>
-        </div>
-
-        <div id="mapsGrid" class="maps-grid">
-          <!-- Dynamically populated by app.js -->
-        </div>
-      </div>
-    </section>
-
-    <!-- 7. Patch Notes & Changelog -->
-    <section id="patches" class="section-wrapper">
-      <div class="container">
-        <div class="section-header">
-          <div class="section-tag">CHANGELOG & ROADMAP</div>
-          <h2 class="section-title">패치 내역</h2>
-          <p class="section-desc">버전별 밸런스 조정, 시스템 개선 및 신규 콘텐츠 업데이트 기록입니다.</p>
-        </div>
-
-        <div id="patchesTimeline" class="patches-timeline">
-          <!-- Dynamically populated by app.js -->
-        </div>
+    <section id="updates" class="section" aria-labelledby="updatesTitle">
+      <div class="shell">
+        <header class="section-heading heading-split">
+          <div><p class="section-kicker">CHANGELOG</p><h2 id="updatesTitle">빌드 업데이트</h2></div>
+          <p>현재 사이트는 소스와 로컬 배포 패키지에서 확인된 변경사항을 기준으로 정리합니다.</p>
+        </header>
+        <div id="patchList" class="patch-list"></div>
       </div>
     </section>
   </main>
 
-  <!-- 8. Footer -->
   <footer class="site-footer">
-    <div class="container footer-content">
-      <div>
-        <p><strong>StarCraft II: BanPickMod (BPM) Project</strong></p>
-        <p style="margin-top: 4px; font-size: 0.8rem;">스타크래프트 II는 Blizzard Entertainment, Inc.의 등록 상표입니다. 본 모드는 비영리 팬 제작 프로젝트입니다.</p>
-      </div>
-
-      <div class="footer-links">
-        <a href="#home">상단으로</a>
-        <a href="#units">유닛 도감</a>
-        <a href="#tutorials">방 생성 가이드</a>
-        <a href="https://github.com/BanPickMod/BanPickMod" target="_blank" rel="noopener noreferrer">GitHub 저장소</a>
-      </div>
+    <div class="shell footer-inner">
+      <div><span class="brand-mark brand-mark-small">BPM</span><p>StarCraft II: BanPickMod<br><small>비영리 팬 제작 프로젝트</small></p></div>
+      <p>StarCraft II는 Blizzard Entertainment, Inc.의 등록 상표입니다.</p>
+      <div class="footer-links"><a href="#home">상단으로</a><a href="https://github.com/BanPickMod/BanPickMod" target="_blank" rel="noopener noreferrer">GitHub</a></div>
     </div>
   </footer>
 
-  <!-- 9. Video Modal Player & Tactical Simulator -->
-  <div id="videoModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3 id="modalTitle" class="modal-title">유닛 전투 시연</h3>
-        <button id="btnCloseModal" class="btn-close-modal" aria-label="닫기">&times;</button>
-      </div>
-
-      <div class="modal-body">
-        <div class="video-container">
-          <video id="modalVideo" class="modal-video-player" playsinline loop muted controls></video>
-          <canvas id="simCanvas" class="simulation-canvas"></canvas>
-          <div id="simOverlayText" class="simulation-overlay">[전술 시뮬레이션 모드] 3~6초 루프 전투 분석</div>
-        </div>
-
-        <div class="modal-unit-stats">
-          <span id="modalStatsSummary"></span>
-          <span style="color: var(--terran-color); font-family: var(--font-mono); font-size: 0.8rem;">ESC 또는 바깥 클릭 시 닫기</span>
-        </div>
-      </div>
+  <dialog id="unitDialog" class="unit-dialog" role="dialog" aria-modal="true" aria-labelledby="unitDialogTitle">
+    <div class="dialog-header">
+      <div><p id="unitDialogRace" class="section-kicker"></p><h2 id="unitDialogTitle"></h2></div>
+      <button class="dialog-close" type="button" data-close-dialog aria-label="상세 정보 닫기">×</button>
     </div>
-  </div>
+    <div id="unitDialogBody" class="dialog-body"></div>
+  </dialog>
 
-  <!-- Toast Notification -->
-  <div id="toast" class="toast-msg">복사 완료!</div>
-
-  <!-- App Script -->
-  <script src="app.js"></script>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <div id="loadError" class="load-error" role="alert" hidden>데이터를 불러오지 못했습니다. 로컬 서버로 실행한 뒤 새로고침해 주세요.</div>
 </body>
 </html>

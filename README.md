@@ -1,31 +1,41 @@
-# BPM Official Web Showcase (Prototype)
+# BPM Web Showcase
 
-스타크래프트 2 밴픽 모드(BanPickMod2, BPM) 공식 웹 쇼케이스 및 데이터베이스 프로토타입입니다.
+StarCraft II 밴픽 모드(BPM)의 현재 기능, 밴픽 규칙, 확장 유닛, 편의성 HUD, 옵저버 모드와 지원 맵을 소개하는 정적 웹사이트입니다.
 
-## 1. 구성 파일
+## 현재 기준
 
-* `index.html`: 메인 웹페이지 구조 (시맨틱 HTML5, 반응형 그리드)
-* `styles.css`: SC2 사이버네틱 다크 테마 (글래스모피즘, 종족별 테마 컬러 및 발광 효과)
-* `app.js`: 데이터 페칭, 종족별 필터, 실시간 검색, 영상/시뮬레이션 모달, 맵 검색어 복사
-* `data/`
-  * `units.json`: 17종 신규/확장 유닛 기본 스펙, 대체 페어 비교(Diff), 전용 업그레이드 수치
-  * `system_diffs.json`: 해방선 시야 통일, 지원유닛 1뎀 평타, 대군주 자동 미네랄 랠리 등
-  * `maps.json`: 정식 지원 전장 3종 (Washout, Fear and Faith, Rorschach)
-  * `patches.json`: 버전별(v1.4, v1.3, v1.2) 체인지로그 및 카테고리 태그
-  * `tutorials.json`: 방 생성 및 밴픽 단계별 가이드
+- Core: `v1.4.1` (`2026-09-14` 로컬 소스·배포 패키지 기준)
+- Observer: `v1.0`
+- 확장·대체 유닛: 17종
+- 밴 규칙: 0 / 1 / 3 / 5
+- 지원 전장: 3종
 
-## 2. 로컬 실행 방법
+배틀넷 공개 상태는 이 저장소만으로 확정할 수 없으므로 게임 내에서 별도로 확인해야 합니다.
 
-별도의 빌드 도구나 Node.js 설치 없이 로컬 웹 서버로 바로 구동됩니다.
+## 구성
 
-```bash
-cd "d:\StarCraft II\Mods\BanPickMod2\ui-prototype\website"
-python -m http.server 8085
+- `index.html`: 시맨틱 페이지 구조, 내비게이션, 데이터 렌더링 대상
+- `styles.css`: 반응형 레이아웃과 BPM UI 디자인 시스템
+- `app.js`: JSON 로딩, 필터·검색, 유닛 상세, 가이드·패치 아코디언, 복사 기능
+- `data/site_meta.json`: 현재 버전, 핵심 기능, 밴픽 흐름, 편의성 기능
+- `data/units.json`: 17종 확장 유닛 상세 데이터
+- `data/modified_units.json`: 기존 유닛 개편 데이터
+- `data/system_diffs.json`: 시스템 전후 비교
+- `data/tutorials.json`: 일반전·옵저버·밴픽·편의성 가이드
+- `data/maps.json`: 지원 전장과 배틀넷 검색어
+- `data/patches.json`: 버전별 변경 내역
+
+## 로컬 실행
+
+`fetch()`로 JSON 파일을 읽으므로 `index.html`을 직접 열지 말고 로컬 서버로 실행합니다.
+
+```powershell
+cd "D:\StarCraft II\Mods\BanPickMod2\ui-prototype\website"
+python -m http.server 8085 --bind 127.0.0.1
 ```
 
-브라우저에서 `http://localhost:8085` 접속.
+브라우저에서 `http://127.0.0.1:8085`에 접속합니다.
 
-## 3. GitHub Pages 배포 안내
+## 자산 정책
 
-이 폴더의 파일들을 GitHub Pages 배포 브랜치(`gh-pages`)의 루트 경로 또는 리포지토리 설정의 소스 디렉터리로 지정하면 즉시 무료로 서비스됩니다.
-신규 유닛 스킬 클립 영상(`.mp4`, `.webm`)은 `assets/videos/` 경로에 배치하면 웹페이지에서 자동 로드됩니다.
+현재 저장소에 실제로 존재하는 유닛 아이콘만 로드합니다. 아이콘이 없는 유닛은 일관된 문자 모노그램을 사용하며, 존재하지 않는 영상이나 포스터 파일은 요청하지 않습니다.

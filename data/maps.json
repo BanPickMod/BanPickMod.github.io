@@ -14,7 +14,7 @@
   {
     "id": "fear_and_faith",
     "name": "피어 앤 페이스 (Fear and Faith)",
-    "version": "BPM_Fear and Faith_v2",
+    "version": "BPM_Fear and Faith_v0.3",
     "searchKeyword": "BPM_Fear and Faith",
     "terrain": "2인용 전장으로, 본진 외곽의 넓은 우회로와 트리플을 둘러싼 언덕 시야 요충지가 특징입니다.",
     "features": [
@@ -26,7 +26,7 @@
   {
     "id": "rorschach",
     "name": "로르샤흐 (Rorschach)",
-    "version": "BPM_Rorschach_v2",
+    "version": "BPM_Rorschach_v0.2",
     "searchKeyword": "BPM_Rorschach",
     "terrain": "2인용 전장으로 공격적인 템포와 찌르기 난타전이 자주 발생합니다.",
     "features": [
