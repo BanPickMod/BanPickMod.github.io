@@ -214,7 +214,14 @@ function openUnitDialog(unitId) {
     <section class="dialog-section">
       <h3>RESEARCH & UPGRADE</h3>
       ${unit.upgrades.length ? `<ul class="upgrade-list">${unit.upgrades.map((upgrade) => `
-        <li class="upgrade-item"><strong>${escapeHtml(upgrade.name)}</strong><div class="upgrade-meta">${escapeHtml(upgrade.cost)} · ${escapeHtml(upgrade.building)}</div><p>${escapeHtml(upgrade.statDiff)}</p></li>
+        <li class="upgrade-item">
+          ${upgrade.icon ? `<img class="upgrade-icon" src="${escapeHtml(upgrade.icon)}" alt="" width="56" height="56">` : ''}
+          <div class="upgrade-copy">
+            <strong>${escapeHtml(upgrade.name)}</strong>
+            <div class="upgrade-meta">${escapeHtml(upgrade.cost)} · ${escapeHtml(upgrade.building)}</div>
+            <p>${escapeHtml(upgrade.statDiff)}</p>
+          </div>
+        </li>
       `).join('')}</ul>` : '<p class="guide-summary">별도의 전용 연구가 없습니다.</p>'}
     </section>
   `;

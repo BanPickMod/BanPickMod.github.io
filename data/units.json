@@ -26,6 +26,7 @@
     "upgrades": [
       {
         "name": "전투 자극제 (Stimpack)",
+        "icon": "assets/images/upgrades/stimpack.png",
         "building": "병영 기술실",
         "requirement": "병영 기술실 (Tech Lab)",
         "cost": "100 / 100 / 121초",
@@ -66,6 +67,7 @@
     "upgrades": [
       {
         "name": "카론 증폭기 (Charon Boosters)",
+        "icon": "assets/images/upgrades/charon-boosters.png",
         "building": "군수공장 기술실",
         "requirement": "군수공장 기술실 (Tech Lab)",
         "cost": "100 / 100 / 110초",
@@ -105,6 +107,7 @@
     "upgrades": [
       {
         "name": "폭주 미사일 (Haywire Missile)",
+        "icon": "assets/images/upgrades/haywire-missile.png",
         "building": "군수공장 기술실",
         "requirement": "군수공장 기술실 (Tech Lab)",
         "cost": "100 / 100 / 110초",
@@ -144,6 +147,7 @@
     "upgrades": [
       {
         "name": "은폐장 (Cloaking Field)",
+        "icon": "assets/images/upgrades/cloaking-field.png",
         "building": "우주공항 기술실",
         "requirement": "우주공항 기술실",
         "cost": "150 / 150 / 79초",
@@ -151,6 +155,7 @@
       },
       {
         "name": "아폴로 반응로 (Apollo Reactor)",
+        "icon": "assets/images/upgrades/apollo-reactor.png",
         "building": "우주공항 기술실",
         "requirement": "우주공항 기술실",
         "cost": "150 / 150 / 79초",
@@ -191,6 +196,7 @@
     "upgrades": [
       {
         "name": "방어막 연구 (Defensive Matrix)",
+        "icon": "assets/images/upgrades/defensive-matrix.png",
         "building": "우주공항 기술실",
         "requirement": "융합로 (Fusion Core) 필요",
         "cost": "150 / 150 / 79초",
@@ -198,6 +204,7 @@
       },
       {
         "name": "감금 연구 (Lockdown)",
+        "icon": "assets/images/upgrades/lockdown.png",
         "building": "우주공항 기술실",
         "requirement": "융합로 (Fusion Core) 필요",
         "cost": "150 / 150 / 79초",
@@ -237,6 +244,7 @@
     "upgrades": [
       {
         "name": "특이점 장전 (Singularity Charge)",
+        "icon": "assets/images/upgrades/singularity-charge.png",
         "building": "인공제어소",
         "requirement": "인공제어소 (Cybernetics Core)",
         "cost": "150 / 150 / 140초",
@@ -290,6 +298,7 @@
     "upgrades": [
       {
         "name": "위상 모드 활성화 (Phasing Mode)",
+        "icon": "assets/images/upgrades/phasing-mode.png",
         "building": "황혼 의회",
         "requirement": "황혼 의회 (Twilight Council)",
         "cost": "100 / 100 / 50초",
@@ -297,6 +306,7 @@
       },
       {
         "name": "보호막 과충전 (Shield Overcharge)",
+        "icon": "assets/images/upgrades/shield-overcharge.png",
         "building": "기사단 기록보관소",
         "requirement": "기사단 기록보관소 (Templar Archive)",
         "cost": "150 / 150 / 79초",
@@ -336,6 +346,7 @@
     "upgrades": [
       {
         "name": "디스크럽션 웹 연구 (Disruption Web)",
+        "icon": "assets/images/upgrades/disruption-web.png",
         "building": "인공제어소",
         "requirement": "인공제어소 (Cybernetics Core)",
         "cost": "200 / 200 / 80초",
@@ -376,6 +387,7 @@
     "upgrades": [
       {
         "name": "원거리 센서 (Apial Sensors)",
+        "icon": "assets/images/upgrades/apial-sensors.png",
         "building": "함대신호소",
         "requirement": "함대신호소 (Fleet Beacon)",
         "cost": "100 / 100 / 80초",
@@ -383,6 +395,7 @@
       },
       {
         "name": "중력 추진기 (Gravitic Thrusters)",
+        "icon": "assets/images/upgrades/gravitic-thrusters.png",
         "building": "함대신호소",
         "requirement": "함대신호소 (Fleet Beacon)",
         "cost": "150 / 150 / 100초",
@@ -422,6 +435,7 @@
     "upgrades": [
       {
         "name": "스카랩 공격력 (Scarab Damage)",
+        "icon": "assets/images/upgrades/scarab-damage.png",
         "building": "로봇공학지원소",
         "requirement": "로봇공학지원소 (Robotics Bay)",
         "cost": "200 / 200 / 100초",
@@ -429,6 +443,7 @@
       },
       {
         "name": "스카랩 적재량 (Scarab Capacity)",
+        "icon": "assets/images/upgrades/scarab-capacity.png",
         "building": "로봇공학지원소",
         "requirement": "로봇공학지원소 (Robotics Bay)",
         "cost": "150 / 150 / 80초",
@@ -468,6 +483,7 @@
     "upgrades": [
       {
         "name": "정지장 연구 (Stasis Field)",
+        "icon": "assets/images/upgrades/stasis-field.png",
         "building": "함대신호소",
         "requirement": "함대신호소 (Fleet Beacon)",
         "cost": "150 / 150 / 79초",
@@ -475,6 +491,7 @@
       },
       {
         "name": "소환 연구 (Recall)",
+        "icon": "assets/images/upgrades/recall.png",
         "building": "함대신호소",
         "requirement": "함대신호소 (Fleet Beacon)",
         "cost": "150 / 150 / 79초",
@@ -514,6 +531,7 @@
     "upgrades": [
       {
         "name": "다리 근육 보강 진화 (Leg Muscle Enhancement)",
+        "icon": "assets/images/upgrades/leg-muscle-enhancement.png",
         "building": "산란못",
         "requirement": "산란못 + 번식지 (Lair) 필요",
         "cost": "150 / 150 / 80초",
@@ -553,6 +571,7 @@
     "upgrades": [
       {
         "name": "돌기 수축 진화 (Volatile Spines)",
+        "icon": "assets/images/upgrades/volatile-spines.png",
         "building": "바퀴 소굴",
         "requirement": "바퀴 소굴 + 번식지 (Lair) 필요",
         "cost": "100 / 100 / 110초",
@@ -592,6 +611,7 @@
     "upgrades": [
       {
         "name": "역병 연구 (Plague)",
+        "icon": "assets/images/upgrades/plague.png",
         "building": "디파일러 언덕",
         "requirement": "디파일러 언덕 (군락 필요)",
         "cost": "150 / 150 / 100초",
@@ -599,6 +619,7 @@
       },
       {
         "name": "흡수 연구 (Consume)",
+        "icon": "assets/images/upgrades/consume.png",
         "building": "디파일러 언덕",
         "requirement": "디파일러 언덕 (군락 필요)",
         "cost": "100 / 100 / 80초",
@@ -606,6 +627,7 @@
       },
       {
         "name": "메타시냅스 결절 연구 (Metasynaptic Node)",
+        "icon": "assets/images/upgrades/metasynaptic-node.png",
         "building": "디파일러 언덕",
         "requirement": "디파일러 언덕 (군락 필요)",
         "cost": "150 / 150 / 80초",
@@ -645,6 +667,7 @@
     "upgrades": [
       {
         "name": "배우체 분열 (Gamete Meiosis)",
+        "icon": "assets/images/upgrades/gamete-meiosis.png",
         "building": "감염 구덩이",
         "requirement": "감염 구덩이 (군락 불필요)",
         "cost": "150 / 150 / 110초",
