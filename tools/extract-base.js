@@ -65,7 +65,7 @@ function unitFrom(id, race, ko, en, group) {
     const bonus = kids(e, "bonus").map((b) => ({ type: b.attrs.type, dmg: num(b.attrs.damage), max: num(b.attrs.max) }));
     const best = dmg + Math.max(0, ...bonus.map((b) => b.dmg));
     return {
-      id: split(w.attrs.id), targets: m.attrs.targets, range: num(m.attrs.range), cd: r2(cd), count, dmg, max: num(e.attrs.max), splash: num(e.attrs.radius) > 0 ? num(e.attrs.radius) : null,
+      id: split(w.attrs.id), rawId: w.attrs.id, effectId: e.attrs.id, targets: m.attrs.targets, range: num(m.attrs.range), cd: r2(cd), count, dmg, max: num(e.attrs.max), splash: num(e.attrs.radius) > 0 ? num(e.attrs.radius) : null,
       bonus, dps: cd > 0 ? r2((dmg * count) / cd) : null, dpsBonus: cd > 0 && bonus.length ? r2((best * count) / cd) : null,
     };
   }).filter(Boolean);

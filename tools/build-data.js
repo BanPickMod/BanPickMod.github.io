@@ -219,13 +219,82 @@ base.forEach((u) => {
   delete u.iconName;
 });
 // documented v1.4.3 changes to base units (docs/v1.4.3 patch notes.md). Anything else needs the BPM mod XML export.
-const baseOverrides = { "v1.4.3": { Marauder: { hp: 100, attrs: ["Light", "Biological"] }, Ravager: { hp: 150, cost: { minerals: 50, gas: 50, supply: 2, time: 9 } } } };
 // extension unit -> the base unit it replaces in the hidden pick
 const PAIR = { firebat: "Marauder", goliath: "Thor", warhound: "SiegeTank", wraith: "VikingFighter", science_vessel: "Raven", dragoon: "Stalker", energizer: "Sentry", corsair: "Phoenix", scout: "VoidRay", reaver: "Disruptor", arbiter: "Mothership", aberration: "Roach", ravasaur: "Ravager", defiler: "Infestor", queen: "Viper", tyrannozor: "Ultralisk", guardian: "BroodLord" };
 unitsOut.forEach((u) => (u.pairId = PAIR[u.id]));
 
+// ---- Mod XML: authoritative values for the current build, and the earlier build used as the "previous" column ----
+const loadMod = require("./mod-data");
+const MOD = { current: loadMod("current"), previous: loadMod("previous") };
+const { resolveBase, resolveExt } = require("./resolve");
+const EXT_MOD = { firebat: "Firebat", goliath: "Goliath", warhound: "WarHound", wraith: "Wraith", science_vessel: "ScienceVessel", dragoon: "Dragoon", energizer: "Energizer", corsair: "CorsairMP", scout: "ScoutMP", reaver: "Reaver", arbiter: "ArbiterMP", aberration: "InfestedAbomination", ravasaur: "Ravasaur", defiler: "DefilerMP", queen: "QueenClassic", tyrannozor: "Terrorzor", guardian: "GuardianMP" };
+base.forEach((u) => { u.v = { "v1.4.3": resolveBase(u, MOD.current), "v1.4.1": resolveBase(u, MOD.previous) }; });
+unitsOut.forEach((e) => { e.modId = EXT_MOD[e.id]; e.v = { "v1.4.3": resolveExt(e, e.modId, MOD.current), "v1.4.1": resolveExt(e, e.modId, MOD.previous) }; });
+
+// Research times in the XML are game seconds (Normal speed). Players read Faster seconds, so divide by 1.4.
+// Set RESEARCH_TIME_DIVISOR to 1 to show the XML numbers unchanged (the old patch notes quote XML numbers).
+const RESEARCH_TIME_DIVISOR = 1.4;
+const researchOf = (M, upgrade) => M.research.find((r) => r.upgrade === upgrade);
+const p143 = patches.find((p) => p.version === "v1.4.3");
+const fmtTime = (raw) => Math.round(raw / RESEARCH_TIME_DIVISOR);
+const MODUP = { "분쇄탄": "BPM_MarauderShatterShells", "네이팜 탄창": "BPM_FirebatNapalmAmmo", "보병 중장갑": "BPM_TerranInfantryHeavyArmor", "크루시오 완충기": "BPM_CrucioSuppressor", "통합 화력 관제망": "BPM_RavenFireControlNetworkResearch", "과학선 부스트": "BPM_ScienceVesselBoostResearch", "원시 허물 진화": "BPM_TerrorzorCarapace" };
+// drop what the shipped build does not contain (checked against the XML), then fill numbers from the XML
+p143.upgrades = p143.upgrades.filter((u) => {
+  if (u.ko === "요새화 프로토콜") { console.log("NOT IN BUILD: Fortification Protocol is absent from", MOD.current.source, "- removed from the v1.4.3 page"); return false; }
+  return true;
+});
+p143.upgrades.forEach((u) => {
+  const id = MODUP[u.ko];
+  if (!id) return;
+  const r = researchOf(MOD.current, id);
+  if (!r) { console.log("MISSING research in XML:", u.ko, id); return; }
+  u.cost = r.minerals + "/" + r.gas; u.time = fmtTime(r.time); u.rawTime = r.time; u.modId = id;
+});
+// numbers quoted in the diff rows that come from research entries
+const wh = (M) => researchOf(M, "BPM_WarHoundTornadoMissile");
+const whRow = p143.diffs.find((d) => d.unit === "WarHound" && d.en === "Haywire Missile research");
+if (whRow && wh(MOD.previous) && wh(MOD.current)) {
+  const f = (r) => r.minerals + "/" + r.gas + "/" + fmtTime(r.time) + "초";
+  whRow.before = f(wh(MOD.previous)); whRow.after = f(wh(MOD.current));
+}
+p143.highlights[0] = { ko: "신규 연구 7종: 분쇄탄, 네이팜 탄창, 보병 중장갑, 크루시오 완충기, 통합 화력 관제망, 과학선 부스트, 원시 허물 진화", en: "Seven new researches: Shatter Shells, Napalm Canister, Infantry Heavy Armor, Crucio Suppressor, Integrated Fire Control Network, Science Vessel Boost, Primal Molt Evolution" };
+p143.sumKo = p143.sumKo.replace("신규 연구 8종과 파라사이트가", "신규 연구 7종과 파라사이트가");
+p143.sumEn = p143.sumEn.replace("Eight new researches", "Seven new researches");
+p143.noteKo = "수치는 BPM_Core_v1.4.3_Fix1 모드 XML에서 추출한 값입니다. 연구 시간은 XML의 게임 초를 인게임 표시 시간(÷1.4)으로 환산했습니다.";
+p143.noteEn = "Numbers are extracted from the BPM_Core_v1.4.3_Fix1 mod XML. Research times convert the XML game seconds to in-game Faster seconds (divide by 1.4).";
+
+// ---- verify every claim the patch page makes against the XML ----
+const C = MOD.current, P = MOD.previous;
+const okList = [], badList = [];
+const chk = (label, actual, expected) => (JSON.stringify(actual) === JSON.stringify(expected) ? okList : badList).push(label + " => " + JSON.stringify(actual) + (JSON.stringify(actual) === JSON.stringify(expected) ? "" : " (patch page says " + JSON.stringify(expected) + ")"));
+const cu = (id) => (C.units[id] || { set: {}, attrs: {}, weapons: [] });
+const blk = (id) => { const e = unitsOut.find((u) => u.id === id); return e ? e.v["v1.4.3"] : base.find((u) => u.id === id).v["v1.4.3"]; };
+chk("Firebat hp", cu("Firebat").set.hp, 75); chk("Firebat Light", cu("Firebat").attrs.Light, true);
+chk("Firebat hp (previous build)", (P.units.Firebat || { set: {} }).set.hp, 100);
+chk("Marauder hp", blk("Marauder").hp, 100); chk("Marauder attrs", blk("Marauder").attrs.includes("Light") && !blk("Marauder").attrs.includes("Armored"), true);
+chk("Goliath ground damage", C.effects.GoliathG && C.effects.GoliathG.amount, 21);
+chk("Aberration hp / supply", [cu("InfestedAbomination").set.hp, cu("InfestedAbomination").set.supply], [200, 2]);
+chk("Guardian hp / speed", [cu("GuardianMP").set.hp, cu("GuardianMP").set.speed], [200, 2.2]);
+chk("Ravager hp / supply / cost", [cu("Ravager").set.hp, cu("Ravager").set.supply, cu("Ravager").set.minerals + "/" + cu("Ravager").set.gas], [150, 2, "50/50"]);
+chk("Ravager morph seconds", Math.round((C.morph.MorphToRavager / 1.4) * 100) / 100, 8.57);
+chk("Ravasaur attrs Light", cu("Ravasaur").attrs.Light, true);
+chk("Ravasaur damage / bonus / range", [C.damageOf("BPM_RavasaurLaunchMissile") && C.damageOf("BPM_RavasaurLaunchMissile").amount, (C.damageOf("BPM_RavasaurLaunchMissile") || { bonus: [] }).bonus.map((b) => b.type + b.amount).join(), C.weapons.RavasaurWeapon.range], [10, "Armored10", 7]);
+chk("Defiler cost / time", [cu("DefilerMP").set.minerals + "/" + cu("DefilerMP").set.gas, Math.round(C.train.find((t) => t.unit === "DefilerMP").time / 1.4)], ["50/200", 34]);
+chk("Defiler weapon dmg / range / cd", (() => { const w = C.weapons.BPM_DefilerWeapon, d = C.damageOf(w.effect); return [d && d.amount, w.range, Math.round((w.period / 1.4) * 100) / 100]; })(), [5, 10, 1.07]);
+chk("Viper weapon dmg / range", (() => { const w = C.weapons.BPM_ViperWeapon, d = C.damageOf(w.effect); return [d && d.amount, w.range]; })(), [1, 10]);
+chk("Irradiate energy / range / duration(game s)", [C.abilities.Irradiate.energy, C.abilities.Irradiate.range, C.behaviors.Irradiate.duration], [75, 8, 21]);
+chk("Defensive Matrix energy / range", [C.abilities.BPM_ScienceVesselDefensiveMatrix.energy, C.abilities.BPM_ScienceVesselDefensiveMatrix.range], [50, 10]);
+chk("Science Vessel Boost duration / mult / cooldown", [C.behaviors.BPM_ScienceVesselBoost.duration, C.behaviors.BPM_ScienceVesselBoost.speedMult, C.abilities.BPM_ScienceVesselBoost.cooldown], [6, 2, 14]);
+chk("Fire Control energy / range / mark seconds / damage x", [C.abilities.BPM_RavenFireControlNetwork.energy, C.abilities.BPM_RavenFireControlNetwork.range, C.behaviors.BPM_RavenFireControlMark.duration, C.behaviors.BPM_RavenFireControlMark.damageFraction], [50, 9, 1.25, 1.2]);
+chk("Repair Drone energy / range", [C.abilities.BPM_RavenRepairDrone.energy, C.abilities.BPM_RavenRepairDrone.range], [50, 7]);
+chk("Parasite energy / range", [C.abilities.BPM_QueenParasite.energy, C.abilities.BPM_QueenParasite.range], [75, 9]);
+chk("Tyrannozor weapon dmg", (() => { const w = C.weapons.BPM_TerrorzorWeapon; return C.damageOf(w.effect) && C.damageOf(w.effect).amount; })(), 35);
+chk("Napalm research", (() => { const r = researchOf(C, "BPM_FirebatNapalmAmmo"); return r.minerals + "/" + r.gas; })(), "100/100");
+console.log("\nVERIFIED against " + C.source + ": " + okList.length + " ok, " + badList.length + " mismatched");
+badList.forEach((b) => console.log("  MISMATCH", b));
+
 const BPM = {
-  base, baseOverrides,
+  base, modInfo: { current: MOD.current.source, previous: MOD.previous.source },
   meta: { current: "v1.4.3", unitCount: units.length, maps: maps.length, bans: "0·1·3·5" },
   units: unitsOut, overrides, versions, patches, news, glossary,
   maps: maps.map((m) => ({ id: m.id, ko: koName(m.name), en: enName(m.name), key: m.searchKeyword, terrainKo: m.terrain, featuresKo: m.features, terrainEn: ({

@@ -15,28 +15,33 @@ const BLD = { "Command Center": "사령부", Barracks: "병영", "Tech Lab": "�
   const fmt = (v) => (v === null || v === undefined || v === "" ? "-" : v);
 
   /* ---------- row builders ---------- */
-  const baseRow = (u) => {
-    const o = ((B.baseOverrides[st.ver] || {})[u.id]) || {};
-    const ch = {};
-    let hp = u.hp, attrs = u.attrs;
-    if (o.hp !== undefined && o.hp !== u.hp) { ch.hp = u.hp; hp = o.hp; }
-    if (o.attrs && o.attrs.join() !== u.attrs.join()) { ch.attrs = u.attrs.map(attrName).join(" · "); attrs = o.attrs; }
-    const rng = Math.max(0, ...u.weapons.map((w) => w.range || 0));
-    let cost = u.cost || { minerals: null, gas: null, supply: null, time: null };
-    if (o.cost) Object.keys(o.cost).forEach((k) => { if (cost[k] !== o.cost[k]) { ch[k] = cost[k]; } });
-    if (o.cost) cost = { ...cost, ...o.cost };
-    return { ...u, cost, kind: "base", hp, attrs, ch, rng };
-  };
-  const extRow = (e) => {
-    const x = window.H.unitAt(e, st.ver), c = x.changed, ch = {};
-    if (c.hp !== undefined) ch.hp = c.hp; if (c.speed !== undefined) ch.speed = c.speed; if (c.range !== undefined) ch.rng = c.range;
-    if (c.groundDmg !== undefined) ch.ground = tr(c.groundDmg); if (c.c_supply !== undefined) ch.supply = c.c_supply; if (c.c_gas !== undefined) ch.gas = c.c_gas; if (c.c_time !== undefined) ch.time = c.c_time;
+  // every unit carries v["v1.4.3"] and v["v1.4.1"]: base-game export (or curated sheet) overlaid with that build's mod XML
+  const sig = (ws) => (ws || []).map((x) => [x.dmg, x.bonus.map((y) => y.type + y.dmg).join(), x.cd, x.range].join("|")).join(";");
+  const rowOf = (u, kind) => {
+    const cur = u.v[st.ver], prev = st.ver === "v1.4.3" ? u.v["v1.4.1"] : null, ch = {};
+    const known = (k) => prev && prev.prov[k] && prev.prov[k] !== "curated" && cur.prov[k] && cur.prov[k] !== "curated";
+    ["hp", "shields", "armor", "shieldArmor", "speed", "sight", "radius", "cargo"].forEach((k) => { if (known(k) && prev[k] !== null && cur[k] !== null && prev[k] !== cur[k]) ch[k] = prev[k]; });
+    // a cost field counts as "known before" only when the previous build set it (BPM units) or the base export has it (base units)
+    ["minerals", "gas", "supply", "time"].forEach((k) => { const pv = prev && prev.cost[k], cv = cur.cost[k], pp = prev && prev.prov["cost." + k]; if (prev && pv !== null && pv !== undefined && cv !== null && cv !== undefined && pv !== cv && (kind === "base" || pp === "mod")) ch[k] = pv; });
+    if (known("attrs") && prev.attrs && cur.attrs && prev.attrs.slice().sort().join() !== cur.attrs.slice().sort().join()) ch.attrs = prev.attrs.map(attrName).join(" · ");
+    const wsPrev = prev && prev.weapons && prev.prov.weapons && prev.prov.weapons !== "curated" ? prev.weapons : null;
+    const rng = cur.weapons && cur.weapons.length ? Math.max(0, ...cur.weapons.map((x) => x.range || 0)) : cur.text ? cur.text.range : null;
+    if (wsPrev && cur.weapons && sig(wsPrev) !== sig(cur.weapons) && wsPrev.every((x) => x.dmg !== null)) ch.weapons = wsPrev;
+    if (st.ver === "v1.4.3") {
+      const KEY = { "생명력": "hp", "인구수": "supply", "이동 속도": "speed" };
+      const p143 = B.patches.find((p) => p.version === "v1.4.3");
+      ((p143 && p143.diffs) || []).filter((d) => (d.unitId ? d.unitId === u.id : d.unit === u.en) && KEY[d.ko]).forEach((d) => {
+        const k = KEY[d.ko], now = k === "supply" ? cur.cost.supply : cur[k], before = parseFloat(d.before), after = parseFloat(d.after);
+        if (ch[k] === undefined && after === now && before !== now) ch[k] = before;
+      });
+    }
     return {
-      id: e.id, kind: "ext", race: e.race, ko: e.ko, en: e.en, icon: e.icon, group: "ext", hp: x.stats.hp, shields: x.stats.shields, armor: x.stats.armor, shieldArmor: null, energy: null,
-      cost: { ...x.cost }, speed: x.stats.speed, sight: null, radius: null, cargo: null, attrs: null, producer: tr(e.buildingKo), requires: [tr(e.techKo)], weapons: null,
-      ground: tr(x.stats.groundDmg), air: tr(x.stats.airDmg), role: tr(x.stats.damageType), rng: x.stats.range, abilities: null, ch, raw: e,
+      id: u.id, kind, race: u.race, ko: u.ko, en: u.en, icon: u.icon, group: kind === "ext" ? "ext" : u.group, ...cur, rng, ch, raw: u, prevBlock: prev,
+      producer: kind === "ext" ? tr(cur.producer) : cur.producer, requires: kind === "ext" ? cur.requires.map(tr) : cur.requires,
     };
   };
+  const baseRow = (u) => rowOf(u, "base");
+  const extRow = (e) => rowOf(e, "ext");
   const rows = () => {
     let r = [];
     if (st.view !== "ext") r = r.concat(B.base.map(baseRow));
@@ -47,15 +52,16 @@ const BLD = { "Command Center": "사령부", Barracks: "병영", "Tech Lab": "�
   };
 
   /* ---------- cell renderers ---------- */
+  const cur = (r, k) => (r.kind === "ext" && r.prov && r.prov[k] === "curated" ? ' class="cur" title="' + t("모드 XML에 값이 없어 수동 정리 값을 사용합니다", "Not in the mod XML; using the hand-curated sheet") + '"' : "");
   const wasHtml = (r, k) => (r.ch[k] !== undefined ? `<span class="was">${esc(r.ch[k])}</span>` : "");
+  const wText = (w) => `${w.dmg === null ? "-" : w.dmg}${w.count > 1 ? "×" + w.count : ""}${w.bonus.map((x) => ` (+${x.dmg} ${attrName(x.type)})`).join("")}`;
   const wLine = (w) => {
-    const dmg = `${w.dmg}${w.count > 1 ? "×" + w.count : ""}${w.bonus.map((b) => ` (+${b.dmg} ${attrName(b.type)})`).join("")}`;
     const tg = TGT[w.targets] ? t(TGT[w.targets][0], TGT[w.targets][1]) : w.targets;
-    return `<div class="wl"><b>${esc(dmg)}</b><span class="mono"> ${w.cd}s · DPS ${fmt(w.dps)}${w.dpsBonus && w.dpsBonus !== w.dps ? ` (${w.dpsBonus})` : ""}</span><span> ${t("사거리", "range")} ${fmt(w.range)} · ${tg}${w.splash ? ` · ${t("범위", "splash")} ${w.splash}` : ""}</span></div>`;
+    return `<div class="wl"><b>${esc(wText(w))}</b><span class="mono"> ${w.cd === null ? "-" : w.cd + "s"} · DPS ${fmt(w.dps)}${w.dpsBonus && w.dpsBonus !== w.dps ? ` (${w.dpsBonus})` : ""}</span><span> ${t("사거리", "range")} ${fmt(w.range)}${tg ? " · " + tg : ""}${w.splash ? ` · ${t("범위", "splash")} ${w.splash}` : ""}</span></div>`;
   };
-  const combatCell = (r) => (r.kind === "base"
-    ? (r.weapons.length ? r.weapons.map(wLine).join("") : `<span class="mute">${t("공격 없음", "No attack")}</span>`)
-    : `<div class="wl"><b>${t("지상", "Ground")}</b> ${esc(r.ground)}${r.ch.ground ? `<span class="was">${esc(r.ch.ground)}</span>` : ""}</div><div class="wl"><b>${t("공중", "Air")}</b> ${esc(r.air)}</div><div class="wl"><span>${t("사거리", "range")} ${fmt(r.rng)}${r.ch.rng !== undefined ? `<span class="was">${r.ch.rng}</span>` : ""} · ${esc(r.role)}</span></div>`);
+  const prevWeapons = (r) => (r.ch.weapons ? `<span class="was">${esc(r.ch.weapons.map((w) => wText(w) + " " + t("사거리", "r") + (w.range ?? "-")).join(" / "))}</span>` : "");
+  const textWeapons = (r) => `<div class="wl"><b>${t("지상", "Ground")}</b> ${esc(tr(r.text.ground))}</div><div class="wl"><b>${t("공중", "Air")}</b> ${esc(tr(r.text.air))}</div><div class="wl"><span>${t("사거리", "range")} ${fmt(r.rng)} · ${esc(tr(r.text.role))}</span></div>`;
+  const combatCell = (r) => (r.weapons && r.weapons.length ? r.weapons.map(wLine).join("") + prevWeapons(r) : r.weapons ? `<span class="mute">${t("공격 없음", "No attack")}</span>` : textWeapons(r));
   const abilCell = (r) => (r.kind === "base"
     ? (r.abilities.length ? r.abilities.map((a) => `<div class="wl"><b>${esc(a.id)}</b><span class="mono"> ${[a.energy != null ? `${t("에너지", "Energy")} ${a.energy}` : "", a.minerals ? `${a.minerals}M` : "", a.gas ? `${a.gas}G` : "", a.cd != null ? `${t("재사용", "CD")} ${a.cd}s` : "", a.range ? `${t("사거리", "range")} ${a.range}` : ""].filter(Boolean).join(" · ")}</span></div>`).join("") : `<span class="mute">-</span>`)
     : `<span class="mute">${t("전용 연구와 능력은 상세에서", "Upgrades and abilities in details")}</span>`);
@@ -68,13 +74,13 @@ const BLD = { "Command Center": "사령부", Barracks: "병영", "Tech Lab": "�
     { k: "time", g: "cost", n: 1, ko: "생산(초)", en: "Build (s)", h: (r) => esc(fmt(r.cost && r.cost.time)) + wasHtml(r, "time") },
     { k: "producer", g: "cost", ko: "생산 건물", en: "Built at", h: (r) => esc(r.kind === "base" ? loc(fmt(r.producer)) : tr(fmt(r.producer))) },
     { k: "requires", g: "cost", ko: "선행 조건", en: "Requires", w: 1, h: (r) => esc(fmt((r.requires || []).map(r.kind === "base" ? loc : (x) => x).join(", ") || null)) },
-    { k: "hp", g: "body", n: 1, ko: "생명력", en: "Health", h: (r) => `${r.hp}${wasHtml(r, "hp")}` },
-    { k: "shields", g: "body", n: 1, ko: "보호막", en: "Shields", h: (r) => esc(fmt(r.shields)) },
-    { k: "armor", g: "body", n: 1, ko: "방어력", en: "Armor", h: (r) => esc(fmt(r.armor)) },
+    { k: "hp", g: "body", n: 1, ko: "생명력", en: "Health", h: (r) => `<span${cur(r, "hp")}>${r.hp}</span>${wasHtml(r, "hp")}` },
+    { k: "shields", g: "body", n: 1, ko: "보호막", en: "Shields", h: (r) => `<span${cur(r, "shields")}>${esc(fmt(r.shields))}</span>${wasHtml(r, "shields")}` },
+    { k: "armor", g: "body", n: 1, ko: "방어력", en: "Armor", h: (r) => `<span${cur(r, "armor")}>${esc(fmt(r.armor))}</span>${wasHtml(r, "armor")}` },
     { k: "sarmor", g: "body", n: 1, ko: "보호막 방어", en: "Shield armor", h: (r) => esc(fmt(r.shieldArmor)) },
-    { k: "energy", g: "body", n: 1, ko: "에너지", en: "Energy", h: (r) => (r.energy ? `${r.energy.start}/${r.energy.max}` : "-") },
-    { k: "speed", g: "body", n: 1, ko: "이동 속도", en: "Speed", h: (r) => `${fmt(r.speed)}${wasHtml(r, "speed")}` },
-    { k: "sight", g: "body", n: 1, ko: "시야", en: "Sight", h: (r) => esc(fmt(r.sight)) },
+    { k: "energy", g: "body", n: 1, ko: "에너지", en: "Energy", h: (r) => (r.energy ? `${r.energy.start ?? "-"}/${r.energy.max}` : "-") },
+    { k: "speed", g: "body", n: 1, ko: "이동 속도", en: "Speed", h: (r) => `<span${cur(r, "speed")}>${fmt(r.speed)}</span>${wasHtml(r, "speed")}` },
+    { k: "sight", g: "body", n: 1, ko: "시야", en: "Sight", h: (r) => `${esc(fmt(r.sight))}${wasHtml(r, "sight")}` },
     { k: "radius", g: "body", n: 1, ko: "반경", en: "Radius", h: (r) => esc(fmt(r.radius)) },
     { k: "cargo", g: "body", n: 1, ko: "수송 칸", en: "Cargo", h: (r) => esc(fmt(r.cargo)) },
     { k: "attrs", g: "body", ko: "속성", en: "Attributes", w: 1, h: (r) => (r.attrs ? esc(r.attrs.map(attrName).join(" · ")) + (r.ch.attrs ? `<span class="was">${esc(r.ch.attrs)}</span>` : "") : "-") },
@@ -94,30 +100,37 @@ const BLD = { "Command Center": "사령부", Barracks: "병영", "Tech Lab": "�
     return `<div class="tscroll w4t"><table class="tbl wk w4"><thead><tr>${cs.map((c) => `<th class="${c.n ? "n" : ""}${c.sticky ? " sticky" : ""}" scope="col">${t(c.ko, c.en)}</th>`).join("")}</tr></thead><tbody>${body || `<tr><td colspan="${cs.length}" class="empty">${t("조건에 맞는 유닛이 없습니다.", "No units match.")}</td></tr>`}</tbody></table></div>`;
   };
   const cardHtml = (r) => {
-    const best = r.kind === "base" && r.weapons.length ? Math.max(...r.weapons.map((w) => w.dpsBonus || w.dps || 0)) : null;
+    const best = r.weapons && r.weapons.length ? Math.max(0, ...r.weapons.map((w) => w.dpsBonus || w.dps || 0)) || null : null;
     const nch = Object.keys(r.ch).length;
     return `<article class="w3-card ${r.race}"><button class="w3-open" data-open="${r.id}" data-kind="${r.kind}" aria-label="${t("자세히", "Details")}: ${esc(uname(r))}"></button>
       ${nch ? `<span class="w3-chg">${t("변경", "Changed")} ${nch}</span>` : ""}
       ${r.icon ? `<img src="${r.icon}" alt="" width="72" height="72">` : `<span class="rtag ${r.race} big">${raceGlyph(r.race)}</span>`}
       <h3>${esc(uname(r))}</h3><p class="mute"><span class="src ${r.kind}">${r.kind === "ext" ? "BPM" : t("기본", "Base")}</span> ${r.kind === "ext" ? "" : grpName(r.group)}</p>
-      <dl><div><dt>HP${r.shields ? "+S" : ""}</dt><dd class="mono">${r.hp}${r.shields ? "+" + r.shields : ""}${wasHtml(r, "hp")}</dd></div><div><dt>${t("방어", "ARM")}</dt><dd class="mono">${fmt(r.armor)}</dd></div><div><dt>${t("속도", "SPD")}</dt><dd class="mono">${fmt(r.speed)}</dd></div><div><dt>${t("비용", "COST")}</dt><dd class="mono">${r.cost.minerals === null ? "-" : r.cost.minerals + "/" + r.cost.gas}</dd></div></dl>
+      <dl><div><dt>HP${r.shields ? "+S" : ""}</dt><dd class="mono">${r.hp}${r.shields ? "+" + r.shields : ""}${wasHtml(r, "hp")}</dd></div><div><dt>${t("방어", "ARM")}</dt><dd class="mono">${fmt(r.armor)}</dd></div><div><dt>${t("속도", "SPD")}</dt><dd class="mono">${fmt(r.speed)}</dd></div><div><dt>${t("비용", "COST")}</dt><dd class="mono">${r.cost.minerals === null || r.cost.minerals === undefined ? "-" : r.cost.minerals + "/" + r.cost.gas}</dd></div></dl>
       ${best ? `<p class="mono w4dps">DPS ${best}</p>` : ""}</article>`;
   };
 
   /* ---------- details (drawer) ---------- */
   const kv = (l, v, was) => `<div class="kv ${was !== undefined ? "chg" : ""}"><dt>${l}</dt><dd>${v}${was !== undefined ? `<span class="was">${esc(was)}</span>` : ""}</dd></div>`;
-  const detailBase = (r) => `<div class="det"><div class="det-h"><img src="${r.icon}" alt="" width="56" height="56"><div><h3>${esc(uname(r))}</h3><p class="mute">${raceName(r.race)} · ${t("기본 게임 유닛", "Base-game unit")} · ${grpName(r.group)}</p></div></div>
-    <dl class="det-g">${kv(t("광물", "Minerals"), fmt(r.cost.minerals))}${kv(t("가스", "Gas"), fmt(r.cost.gas))}${kv(t("인구", "Supply"), fmt(r.cost.supply))}${kv(t("생산(초)", "Build (s)"), fmt(r.cost.time))}
-      ${kv(t("생명력", "Health"), r.hp, r.ch.hp)}${kv(t("보호막", "Shields"), r.shields)}${kv(t("방어력", "Armor"), r.armor)}${kv(t("보호막 방어", "Shield armor"), r.shieldArmor)}
-      ${kv(t("이동 속도", "Speed"), fmt(r.speed))}${kv(t("시야", "Sight"), fmt(r.sight))}${kv(t("반경", "Radius"), fmt(r.radius))}${kv(t("수송 칸", "Cargo"), fmt(r.cargo))}${r.energy ? kv(t("에너지", "Energy"), `${r.energy.start}/${r.energy.max}`) : ""}</dl>
-    <dl class="det-l">${kv(t("속성", "Attributes"), esc(r.attrs.map(attrName).join(" · ")), r.ch.attrs)}${kv(t("이동 방식", "Movement"), esc(loc(r.move || "-")))}${kv(t("생산 건물", "Built at"), esc(loc(fmt(r.producer))))}${kv(t("선행 조건", "Requires"), esc(fmt(r.requires.map(loc).join(", ") || null)))}</dl>
-    <h4>${t("무기", "Weapons")}</h4>${r.weapons.length ? `<div class="tscroll"><table class="tbl det-t"><thead><tr><th>${t("무기", "Weapon")}</th><th class="n">${t("피해", "Dmg")}</th><th>${t("보너스", "Bonus")}</th><th class="n">${t("횟수", "Hits")}</th><th class="n">${t("쿨다운", "CD")}</th><th class="n">DPS</th><th class="n">${t("사거리", "Range")}</th><th>${t("대상", "Targets")}</th></tr></thead><tbody>${r.weapons.map((w) => `<tr><td>${esc(w.id)}</td><td class="n mono">${w.dmg}</td><td>${w.bonus.map((b) => `+${b.dmg} ${attrName(b.type)}`).join(", ") || "-"}</td><td class="n mono">${w.count}</td><td class="n mono">${w.cd}s</td><td class="n mono">${fmt(w.dps)}${w.dpsBonus && w.dpsBonus !== w.dps ? ` (${w.dpsBonus})` : ""}</td><td class="n mono">${fmt(w.range)}</td><td>${TGT[w.targets] ? t(TGT[w.targets][0], TGT[w.targets][1]) : esc(w.targets)}</td></tr>`).join("")}</tbody></table></div>` : `<p class="mute">${t("공격 없음", "No attack")}</p>`}
-    ${r.abilities.length ? `<h4>${t("능력", "Abilities")}</h4><ul class="det-u">${r.abilities.map((a) => `<li><b>${esc(a.id)}</b><span class="mono">${[a.energy != null ? `${t("에너지", "Energy")} ${a.energy}` : "", a.minerals ? `${a.minerals}M` : "", a.gas ? `${a.gas}G` : "", a.cd != null ? `${t("재사용", "CD")} ${a.cd}s` : "", a.range ? `${t("사거리", "range")} ${a.range}` : ""].filter(Boolean).join(" · ")}</span></li>`).join("")}</ul>` : ""}
-    <p class="vnote">${ico("info")}${t("출처: 기본 게임 밸런스 XML. BPM 변경은 문서에 기록된 항목만 반영됩니다.", "Source: base-game balance XML. Only documented BPM changes are applied.")}</p></div>`;
-  const detail = (id, kind) => {
-    if (kind === "ext") { window.H.wikiSt.ver = st.ver; return window.H.detailHtml(B.units.find((u) => u.id === id)); }
-    return detailBase(baseRow(B.base.find((u) => u.id === id)));
+  const abilLine = (a) => `<li><b>${esc(a.id)}</b><span class="mono">${[a.energy != null ? `${t("에너지", "Energy")} ${a.energy}` : "", a.minerals ? `${a.minerals}M` : "", a.gas ? `${a.gas}G` : "", a.cd != null ? `${t("재사용", "CD")} ${a.cd}s` : "", a.range ? `${t("사거리", "range")} ${a.range}` : ""].filter(Boolean).join(" · ")}</span></li>`;
+  const FIELD = { hp: ["생명력", "Health"], shields: ["보호막", "Shields"], armor: ["방어력", "Armor"], speed: ["이동 속도", "Speed"], sight: ["시야", "Sight"], attrs: ["속성", "Attributes"], weapons: ["무기", "Weapons"], energy: ["에너지", "Energy"], "cost.minerals": ["광물", "Minerals"], "cost.gas": ["가스", "Gas"], "cost.supply": ["인구", "Supply"], "cost.time": ["생산 시간", "Build time"] };
+  const provHtml = (r) => {
+    if (r.kind !== "ext") return `<p class="vnote">${ico("info")}${t("출처: 기본 게임 밸런스 XML에 BPM 모드 XML의 명시 값을 덮어썼습니다.", "Source: base-game balance XML with the explicit values from the BPM mod XML applied on top.")}</p>`;
+    const mod = [], hand = [];
+    Object.keys(FIELD).forEach((k) => { const p = r.prov[k]; if (p === "mod") mod.push(t(FIELD[k][0], FIELD[k][1])); else if (p === "curated" || (p === undefined && k !== "energy")) hand.push(t(FIELD[k][0], FIELD[k][1])); });
+    return `<div class="prov"><h4>${t("값의 출처", "Where the numbers come from")}</h4><p><b>${t("모드 XML에 명시", "Set in the mod XML")}</b> ${esc(mod.join(", ") || "-")}</p><p><b>${t("XML에 없음 (캠페인/의존성 상속, 수동 정리 값 사용)", "Not in the XML (inherited from dependencies; hand-curated value shown)")}</b> ${esc(hand.join(", ") || "-")}</p></div>`;
   };
+  const detailRow = (r) => `<div class="det"><div class="det-h">${r.icon ? `<img src="${r.icon}" alt="" width="56" height="56">` : ""}<div><h3>${esc(uname(r))}</h3><p class="mute">${raceName(r.race)} · ${r.kind === "ext" ? t("BPM 추가 유닛", "BPM added unit") : t("기본 게임 유닛", "Base-game unit") + " · " + grpName(r.group)}</p></div></div>
+    <dl class="det-g">${kv(t("광물", "Minerals"), fmt(r.cost.minerals), r.ch.minerals)}${kv(t("가스", "Gas"), fmt(r.cost.gas), r.ch.gas)}${kv(t("인구", "Supply"), fmt(r.cost.supply), r.ch.supply)}${kv(r.timeKind === "morph" ? t("변태(초)", "Morph (s)") : t("생산(초)", "Build (s)"), fmt(r.cost.time), r.ch.time)}
+      ${kv(t("생명력", "Health"), fmt(r.hp), r.ch.hp)}${kv(t("보호막", "Shields"), fmt(r.shields), r.ch.shields)}${kv(t("방어력", "Armor"), fmt(r.armor), r.ch.armor)}${kv(t("보호막 방어", "Shield armor"), fmt(r.shieldArmor))}
+      ${kv(t("이동 속도", "Speed"), fmt(r.speed), r.ch.speed)}${kv(t("시야", "Sight"), fmt(r.sight), r.ch.sight)}${kv(t("반경", "Radius"), fmt(r.radius))}${kv(t("수송 칸", "Cargo"), fmt(r.cargo))}${r.energy ? kv(t("에너지", "Energy"), `${r.energy.start ?? "-"}/${r.energy.max}`) : ""}</dl>
+    <dl class="det-l">${kv(t("속성", "Attributes"), esc(r.attrs ? r.attrs.map(attrName).join(" · ") : "-"), r.ch.attrs)}${kv(t("이동 방식", "Movement"), esc(loc(r.move || "-")))}${kv(t("생산 건물", "Built at"), esc(r.kind === "ext" ? fmt(r.producer) : loc(fmt(r.producer))))}${kv(t("선행 조건", "Requires"), esc(fmt((r.requires || []).map(r.kind === "ext" ? (x) => x : loc).join(", ") || null)))}</dl>
+    <h4>${t("무기", "Weapons")}</h4>${r.weapons && r.weapons.length ? `<div class="tscroll"><table class="tbl det-t"><thead><tr><th>${t("무기", "Weapon")}</th><th class="n">${t("피해", "Dmg")}</th><th>${t("보너스", "Bonus")}</th><th class="n">${t("횟수", "Hits")}</th><th class="n">${t("쿨다운", "CD")}</th><th class="n">DPS</th><th class="n">${t("사거리", "Range")}</th><th>${t("대상", "Targets")}</th></tr></thead><tbody>${r.weapons.map((x) => `<tr><td>${esc(x.id)}</td><td class="n mono">${fmt(x.dmg)}</td><td>${x.bonus.map((y) => `+${y.dmg} ${attrName(y.type)}`).join(", ") || "-"}</td><td class="n mono">${x.count}</td><td class="n mono">${x.cd === null ? "-" : x.cd + "s"}</td><td class="n mono">${fmt(x.dps)}${x.dpsBonus && x.dpsBonus !== x.dps ? ` (${x.dpsBonus})` : ""}</td><td class="n mono">${fmt(x.range)}</td><td>${TGT[x.targets] ? t(TGT[x.targets][0], TGT[x.targets][1]) : esc(fmt(x.targets))}</td></tr>`).join("")}</tbody></table></div>${r.prov.weapons === "partial" ? `<p class="vnote">${ico("info")}${t("쿨다운이나 피해 일부는 의존성에서 상속되어 모드 XML에 없습니다.", "Some cooldown or damage values are inherited from dependencies and absent from the mod XML.")}</p>` : ""}${r.ch.weapons ? `<p class="vnote">${ico("clock-counter-clockwise")}${t("이전 빌드", "Previous build")}: ${esc(r.ch.weapons.map((x) => wText(x) + " " + t("사거리", "range") + " " + fmt(x.range)).join(" / "))}</p>` : ""}` : r.weapons ? `<p class="mute">${t("공격 없음", "No attack")}</p>` : textWeapons(r)}
+    ${r.abilities && r.abilities.length ? `<h4>${t("능력", "Abilities")}</h4><ul class="det-u">${r.abilities.map(abilLine).join("")}</ul>` : ""}
+    ${r.kind === "ext" && r.raw.diff.length ? `<h4>${t("기본 유닛과의 차이", "Versus the base unit")}</h4><table class="tbl det-t"><thead><tr><th>${t("항목", "Item")}</th><th>${esc(t(r.raw.pairKo, r.raw.pairEn))}</th><th>${esc(uname(r))}</th></tr></thead><tbody>${r.raw.diff.map((d) => `<tr><td>${esc(tr(d.item))}</td><td class="wrapc">${esc(tr(d.pair))}</td><td class="wrapc"><b>${esc(tr(d.unit))}</b></td></tr>`).join("")}</tbody></table>` : ""}
+    ${r.kind === "ext" && r.raw.upgrades.length ? `<h4>${t("전용 업그레이드", "Upgrades")}</h4><ul class="det-u">${r.raw.upgrades.map((g) => `<li><b>${esc(tr(g.name))}</b><span class="mono">${esc(g.cost)}</span><span>${esc(tr(g.building))}</span><span>${esc(tr(g.statDiff))}</span></li>`).join("")}</ul>` : ""}
+    ${provHtml(r)}</div>`;
+  const detail = (id, kind) => detailRow(kind === "ext" ? extRow(B.units.find((u) => u.id === id)) : baseRow(B.base.find((u) => u.id === id)));
 
   /* ---------- BPM added units: pair view ---------- */
   const PAIRSTAT = [
@@ -142,6 +155,7 @@ const BLD = { "Command Center": "사령부", Barracks: "병영", "Tech Lab": "�
       </details></article>`;
   };
 
+  const srcNote = () => `<p class="vnote">${ico("file-code")}${st.ver === "v1.4.3" ? t("수치 출처", "Source") + ": " + esc(B.modInfo.current) : t("이전 빌드 수치는 ", "Previous-build numbers come from ") + esc(B.modInfo.previous) + t("에서 추출했습니다.", ".")} <span class="cur">${t("점선 밑줄", "Dotted")}</span> ${t("= 모드 XML에 값이 없어 수동 정리 값을 사용", "= not in the mod XML; hand-curated value")}</p>`;
   /* ---------- page ---------- */
   const seg = (attr, items, cur) => `<div class="seg" role="group">${items.map(([v, l]) => `<button data-${attr}="${v}" aria-pressed="${cur === v}">${l}</button>`).join("")}</div>`;
   S.wiki[4] = () => {
@@ -171,7 +185,7 @@ const BLD = { "Command Center": "사령부", Barracks: "병영", "Tech Lab": "�
           } else if (st.mode === "cards") {
             main.innerHTML = `<p class="vnote">${ico("list-numbers")}${rs.length} ${t("개 유닛", "units")}</p>` + ["terran", "protoss", "zerg"].filter((r) => rs.some((x) => x.race === r)).map((r) => `<section class="w3-race ${r}" id="${r}"><h2>${raceName(r)}</h2><div class="w3-cards">${rs.filter((x) => x.race === r).map(cardHtml).join("")}</div></section>`).join("");
           } else {
-            main.innerHTML = `<p class="vnote">${ico("list-numbers")}${rs.length} ${t("개 유닛", "units")} · ${t("행을 누르면 모든 무기·능력이 있는 상세가 열립니다.", "Click a row for full weapons and abilities.")}</p>${tableHtml(rs)}`;
+            main.innerHTML = `<p class="vnote">${ico("list-numbers")}${rs.length} ${t("개 유닛", "units")} · ${t("행을 누르면 모든 무기·능력이 있는 상세가 열립니다.", "Click a row for full weapons and abilities.")}</p>${srcNote()}${tableHtml(rs)}`;
           }
           bindOpen();
         };

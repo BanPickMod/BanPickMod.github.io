@@ -419,3 +419,7 @@ h1,h2,h3{font-family:var(--f-display);font-weight:900;text-transform:uppercase;l
 .uph3{margin:26px 0 8px;font-size:1.4rem}
 .p4note{display:block;max-width:70ch;font-size:.88rem}
 @media (max-width:520px){.ucard li.up{grid-template-columns:1fr}.upi{display:none}}
+
+/* values that come from the hand-curated sheet instead of the mod XML */
+.cur{text-decoration:underline dotted;text-underline-offset:3px;text-decoration-color:var(--mute)}
+.prov{margin-top:6px;padding:12px;background:color-mix(in oklab,var(--panel2) 80%,transparent);font-size:.86rem;display:grid;gap:6px}.prov h4{margin:0}.prov p{color:var(--mute)}.prov b{color:var(--text)}
