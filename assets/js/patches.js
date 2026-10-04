@@ -14,13 +14,8 @@
     root.querySelectorAll("[data-ver]").forEach((b) => b.addEventListener("click", () => { st.ver = b.dataset.ver; history.replaceState(null, "", "#" + st.ver); redraw(); }));
     root.querySelectorAll("[data-race]").forEach((b) => b.addEventListener("click", () => { st.race = b.dataset.race; redraw(); }));
   };
-  /* body for versions that have no structured diffs: v1.4.1/older use categorized lines, v1.5 uses PTR groups */
+  /* body for versions that have no structured diffs: v1.4.1/older use categorized lines */
   const legacyBody = (p, cls) => `<ul class="${cls}">${p.changes.map((c) => `<li><span class="tagc">${esc(c.tag)}</span><span class="cat">${esc(c.category)}</span><p>${esc(t(c.text, c.en || c.text))}</p></li>`).join("")}</ul>`;
-  const ptrBody = (p, cls) => ["terran", "protoss", "zerg"].map((r) => {
-    const g = p.ptr.filter((x) => x.race === r);
-    if (!g.length || (st.race !== "all" && st.race !== r)) return "";
-    return `<section class="${cls}-race"><h3>${raceName(r)}</h3>${g.map((x) => `<article class="${cls}-ptr"><h4>${esc(x.title)}</h4><ul>${x.changes.map((c) => `<li>${esc(c)}</li>`).join("")}</ul></article>`).join("")}</section>`;
-  }).join("");
   const hlFix = (p) => `${p.highlights ? `<div class="pcols"><div><h3>${t("주요 변경", "Highlights")}</h3><ul class="bul">${p.highlights.map((h) => `<li>${esc(t(h.ko, h.en))}</li>`).join("")}</ul></div>
     <div><h3>${t("버그 수정", "Fixes")}</h3><ul class="bul">${p.fixes.map((h) => `<li>${esc(t(h.ko, h.en))}</li>`).join("")}</ul>
     <h3>${t("알려진 문제", "Known issues")}</h3><ul class="bul">${p.known.map((h) => `<li>${esc(t(h.ko, h.en))}</li>`).join("")}</ul></div></div>` : ""}`;
@@ -38,7 +33,7 @@
           const p = P(st.ver);
           rail.innerHTML = B.patches.map((x) => verBtn(x, "p1-v")).join("");
           body.innerHTML = `<div class="p1-head bracket"><div class="p1-vt"><span class="pill mono">${esc(p.version)}</span><span class="mute">${esc(fmtDate(p.date))}</span></div><h2 class="p1-title">${esc(title(p))}</h2><p class="lede">${esc(sum(p))}</p></div>
-            ${p.diffs ? `${hlFix(p)}<div class="p1-filter"><h3>${t("수치 변경", "Value changes")}</h3>${raceSeg()}</div><div class="dlist">${diffCards(filt(p))}</div>` : p.ptr ? `<div class="p1-filter"><h3>${t("시험 중인 변경", "Changes under test")}</h3>${raceSeg()}</div>${ptrBody(p, "p1")}` : `<h3>${t("변경 사항", "Changes")}</h3>${legacyBody(p, "legacy")}`}`;
+            ${p.diffs ? `${hlFix(p)}<div class="p1-filter"><h3>${t("수치 변경", "Value changes")}</h3>${raceSeg()}</div><div class="dlist">${diffCards(filt(p))}</div>` : `<h3>${t("변경 사항", "Changes")}</h3>${legacyBody(p, "legacy")}`}`;
           bind(body, draw); bind(rail, draw);
         };
         draw();
@@ -57,8 +52,7 @@
         const rest = () => {
           const p = P(st.ver);
           body.innerHTML = `<article class="p2-art" id="${p.version}"><header><h2 class="h2"><span class="mono">${esc(p.version)}</span>&nbsp; ${esc(title(p))}</h2><p class="mute">${esc(fmtDate(p.date))} · ${verLabel(p.version) || t("이전", "Earlier")}</p><p class="lede">${esc(sum(p))}</p></header>
-            ${p.diffs ? `${hlFix(p)}<h3>${t("수치 변경표", "Value changes")}</h3><div class="tscroll"><table class="tbl p2-tbl"><thead><tr><th>${t("종족", "Race")}</th><th>${t("대상", "Unit")}</th><th>${t("항목", "Item")}</th><th>${t("이전", "Before")}</th><th>${t("이후", "After")}</th><th>Δ</th></tr></thead><tbody>${filt(p).map((d) => `<tr><td><span class="rtag ${d.race}">${raceGlyph(d.race)}</span></td><td>${d.unitId ? `<a class="lnk" href="wiki.html#${d.unitId}">${esc(dunit(d))}</a>` : esc(dunit(d))}</td><td>${esc(t(d.ko, d.en))}</td><td class="mono mute">${esc(tr(d.before))}</td><td class="mono"><b>${esc(tr(d.after))}</b></td><td>${dchip(d.before, d.after)}</td></tr>`).join("") || `<tr><td colspan="6" class="empty">${t("조건에 맞는 변경이 없습니다.", "No changes match the filter.")}</td></tr>`}</tbody></table></div>`
-              : p.ptr ? ptrBody(p, "p2") : legacyBody(p, "legacy")}</article>`;
+            ${p.diffs ? `${hlFix(p)}<h3>${t("수치 변경표", "Value changes")}</h3><div class="tscroll"><table class="tbl p2-tbl"><thead><tr><th>${t("종족", "Race")}</th><th>${t("대상", "Unit")}</th><th>${t("항목", "Item")}</th><th>${t("이전", "Before")}</th><th>${t("이후", "After")}</th><th>Δ</th></tr></thead><tbody>${filt(p).map((d) => `<tr><td><span class="rtag ${d.race}">${raceGlyph(d.race)}</span></td><td>${d.unitId ? `<a class="lnk" href="wiki.html#${d.unitId}">${esc(dunit(d))}</a>` : esc(dunit(d))}</td><td>${esc(t(d.ko, d.en))}</td><td class="mono mute">${esc(tr(d.before))}</td><td class="mono"><b>${esc(tr(d.after))}</b></td><td>${dchip(d.before, d.after)}</td></tr>`).join("") || `<tr><td colspan="6" class="empty">${t("조건에 맞는 변경이 없습니다.", "No changes match the filter.")}</td></tr>`}</tbody></table></div>` : legacyBody(p, "legacy")}</article>`;
         };
         const draw = () => {
           bar.innerHTML = `<div class="seg" role="group" aria-label="${t("버전", "Version")}">${B.patches.map((p) => `<button data-ver="${p.version}" aria-pressed="${st.ver === p.version}">${esc(p.version)}</button>`).join("")}</div>${raceSeg()}<div class="wsearch">${ico("magnifying-glass")}<input class="inp" type="search" data-q value="${esc(st.q)}" placeholder="${t("유닛 또는 항목 검색", "Filter by unit or item")}" aria-label="${t("필터", "Filter")}"></div>`;
@@ -82,7 +76,7 @@
           const top = (p.diffs || []).filter((d) => ["Health", "Range", "Supply", "Speed"].includes(d.en)).slice(0, 4);
           body.innerHTML = `<header class="p3-hero"><span class="mono p3-ver">${esc(p.version)}</span><h1>${esc(title(p))}</h1><p>${esc(sum(p))}</p><span class="mute">${esc(fmtDate(p.date))}</span></header>
             ${top.length ? `<div class="p3-top">${top.map((d) => `<div class="p3-t ${d.race}"><b>${esc(dunit(d))}</b><span>${esc(t(d.ko, d.en))}</span><div class="p3-v2"><s class="mono">${esc(tr(d.before))}</s><i></i><strong class="mono">${esc(tr(d.after))}</strong></div></div>`).join("")}</div>` : ""}
-            ${p.diffs ? `${hlFix(p)}<div class="p1-filter"><h2 class="h2">${t("전체 변경", "All changes")}</h2>${raceSeg()}</div><div class="dlist">${diffCards(filt(p))}</div>` : p.ptr ? `<div class="p1-filter"><h2 class="h2">${t("시험 중인 변경", "Changes under test")}</h2>${raceSeg()}</div>${ptrBody(p, "p3")}` : legacyBody(p, "legacy")}`;
+            ${p.diffs ? `${hlFix(p)}<div class="p1-filter"><h2 class="h2">${t("전체 변경", "All changes")}</h2>${raceSeg()}</div><div class="dlist">${diffCards(filt(p))}</div>` : legacyBody(p, "legacy")}`;
           bind(body, draw); bind(tabs, draw);
         };
         draw();
@@ -97,11 +91,6 @@
     if (e) return e.icon;
     const b = B.base.find((u) => u.en.toLowerCase() === String(d.unit || d.title || "").toLowerCase().split(" (")[0]);
     return b ? b.icon : null;
-  };
-  const ptrIcon = (g) => {
-    const e = B.units.find((u) => u.id === g.unitId); if (e) return e.icon;
-    const b = B.base.find((u) => u.id.toLowerCase() === g.unitId.replace(/_/g, "").toLowerCase()); if (b) return b.icon;
-    return "assets/images/icons/" + g.unitId.replace(/_/g, "-") + ".png";
   };
   const cardIcon = (src, race) => (src ? `<img src="${src}" alt="" width="56" height="56" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'rtag ${race} big',textContent:'${raceGlyph(race)}'}))">` : `<span class="rtag ${race} big">${raceGlyph(race)}</span>`);
   const upMatch = (u, x) => (st.race === "all" || x.race === st.race) && (!st.q || (x.unit + x.unitKo + u.ko + u.en).toLowerCase().includes(st.q.toLowerCase()));
@@ -131,10 +120,6 @@
     if (!rs.length) return "";
     return `<h3 class="uph3">${t("신규 연구·능력", "New researches and abilities")}</h3><div class="tscroll"><table class="tbl p2-tbl"><thead><tr><th>${t("대상", "Unit")}</th><th>${t("이름", "Name")}</th><th>${t("구분", "Type")}</th><th>${t("연구 위치", "Where")}</th><th>${t("비용", "Cost")}</th><th>${t("시간", "Time")}</th><th>${t("필요", "Needs")}</th><th>${t("효과", "Effect")}</th></tr></thead><tbody>${rs.map(([u, x]) => `<tr><td>${esc(t(x.unitKo, x.unit))}</td><td><b>${esc(t(u.ko, u.en))}</b></td><td>${t(KIND[u.kind][0], KIND[u.kind][1])}</td><td>${esc(t(u.whereKo, u.whereEn))}</td><td class="mono">${esc(u.cost)}</td><td class="mono">${u.time ? u.time + t("초", "s") : "-"}</td><td>${esc(t(u.reqKo, u.reqEn))}</td><td class="wrapc">${esc(t(u.effKo, u.effEn))}</td></tr>`).join("")}</tbody></table></div>`;
   };
-  const ptrCards = (p) => {
-    const gs = p.ptr.filter((g) => (st.race === "all" || g.race === st.race) && (!st.q || g.title.toLowerCase().includes(st.q.toLowerCase())));
-    return gs.length ? `<div class="ucards">${gs.map((g) => `<article class="ucard ${g.race}"><header>${cardIcon(ptrIcon(g), g.race)}<div><h3>${esc(g.title)}</h3><span class="mute">${raceName(g.race)} · PTR</span></div><span class="ucnt mono">${g.changes.length}</span></header><ul class="plain">${g.changes.map((c) => `<li>${esc(c)}</li>`).join("")}</ul></article>`).join("")}</div>` : `<p class="empty">${t("조건에 맞는 변경이 없습니다.", "No changes match the filter.")}</p>`;
-  };
   const legacyCards = (p) => {
     const by = new Map();
     p.changes.forEach((c) => { if (!by.has(c.category)) by.set(c.category, []); by.get(c.category).push(c); });
@@ -152,7 +137,6 @@
           const top = (p.diffs || []).filter((d) => ["Health", "Range", "Supply", "Speed"].includes(d.en)).slice(0, 4);
           const toolbar = `<div class="p4-tools">${raceSeg()}<div class="seg" role="group" aria-label="${t("보기", "View")}"><button data-pview="cards" aria-pressed="${pv.view === "cards"}">${ico("squares-four")}${t("유닛별 카드", "Unit cards")}</button><button data-pview="table" aria-pressed="${pv.view === "table"}">${ico("table")}${t("변경표", "Table")}</button></div><div class="wsearch">${ico("magnifying-glass")}<input class="inp" type="search" data-q value="${esc(st.q)}" placeholder="${t("유닛 또는 항목 검색", "Filter by unit or item")}" aria-label="${t("필터", "Filter")}"></div></div>`;
           const sec = p.diffs ? `${hlFix(p)}<div class="p1-filter"><h2 class="h2">${t("유닛별 변경", "Changes by unit")}</h2>${toolbar}</div><div data-list></div>`
-            : p.ptr ? `<div class="p1-filter"><h2 class="h2">${t("시험 중인 변경", "Changes under test")}</h2>${toolbar}</div><div data-list></div>`
             : `<div class="p1-filter"><h2 class="h2">${t("변경 사항", "Changes")}</h2></div><div data-list></div>`;
           body.innerHTML = `<header class="p3-hero"><span class="mono p3-ver">${esc(p.version)}</span><h1>${esc(title(p))}</h1><p>${esc(sum(p))}</p><span class="mute">${esc(fmtDate(p.date))}</span>${p.noteKo ? `<span class="mute p4note">${esc(t(p.noteKo, p.noteEn))}</span>` : ""}${p.version === "v1.4.3" ? `<a class="lnk" href="patch-notes-v1.4.3.html">${t("유닛 카드형 상세 패치 노트", "Detailed patch notes with unit cards")}${ico("arrow-up-right")}</a>` : ""}</header>
             ${top.length ? `<div class="p3-top">${top.map((d) => `<div class="p3-t ${d.race}"><b>${esc(dunit(d))}</b><span>${esc(t(d.ko, d.en))}</span><div class="p3-v2"><s class="mono">${esc(tr(d.before))}</s><i></i><strong class="mono">${esc(tr(d.after))}</strong></div></div>`).join("")}</div>` : ""}${sec}`;
@@ -161,7 +145,7 @@
             if (p.diffs) {
               if (pv.view === "cards") list.innerHTML = unitCards(p) + sysCards(p);
               else list.innerHTML = `<div class="tscroll"><table class="tbl p2-tbl"><thead><tr><th>${t("종족", "Race")}</th><th>${t("대상", "Unit")}</th><th>${t("항목", "Item")}</th><th>${t("이전", "Before")}</th><th>${t("이후", "After")}</th><th>Δ</th></tr></thead><tbody>${filt(p).map((d) => `<tr><td><span class="rtag ${d.race}">${raceGlyph(d.race)}</span></td><td>${esc(dunit(d))}</td><td>${esc(t(d.ko, d.en))}</td><td class="mono mute">${esc(tr(d.before))}</td><td class="mono"><b>${esc(tr(d.after))}</b></td><td>${dchip(d.before, d.after)}</td></tr>`).join("") || `<tr><td colspan="6" class="empty">${t("조건에 맞는 변경이 없습니다.", "No changes match the filter.")}</td></tr>`}</tbody></table></div>${upTable(p)}`;
-            } else if (p.ptr) list.innerHTML = ptrCards(p);
+            }
             else list.innerHTML = legacyCards(p);
           };
           fill();

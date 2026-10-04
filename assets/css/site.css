@@ -139,8 +139,6 @@ td.chg{color:var(--text);font-weight:700;background:color-mix(in oklab,var(--acc
 .legacy .tagc{font:700 .72rem var(--f-mono);color:var(--accent)}.legacy .cat{color:var(--mute);font-size:.82rem}
 @media (max-width:640px){.legacy li{grid-template-columns:1fr}}
 [class$="-race"] h3{font-size:1.05rem;margin:18px 0 8px}
-[class$="-ptr"]{padding:12px 14px;background:var(--panel);border-radius:var(--r);margin-bottom:10px}
-[class$="-ptr"] h4{margin-bottom:6px}[class$="-ptr"] li{padding:3px 0;color:var(--mute);font-size:.92rem}
 .w2-meta{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center;margin:6px 0 10px}
 
 /* WORLD 3: ARENA. Broadcast stage. Team blue is the interface accent, red means BAN, lime means PICK. Cut corners, heavy condensed type. */

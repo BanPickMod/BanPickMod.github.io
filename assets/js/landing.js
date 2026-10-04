@@ -5,7 +5,6 @@
   const headline = () => t("밴으로 흔들고,<br>히든 픽으로 완성하는 전장.", "Ban to shake it up.<br>Hidden-pick to finish it.");
   const sub = () => t("0·1·3·5밴 규칙과 비공개 선택으로 스타크래프트 II 1대1에 전략 한 층을 더하는 커스텀 모드입니다.", "A StarCraft II 1v1 custom mod that adds a ban phase and secret picks before the first worker moves.");
   const hl = (h) => t(h.ko, h.en);
-  const newsKind = (k) => (k === "ptr" ? "PTR" : t("패치", "Patch"));
   const newsRows = (w, cls) => B.news.map((n) => `
     <a class="${cls}" href="patches.html#${n.version}">
       <span class="mono">${esc(n.version)}</span><span>${esc(t(n.ko, n.en))}</span><span class="mono mute">${esc(window.H.fmtDate(n.date))}</span>${ico("arrow-right")}

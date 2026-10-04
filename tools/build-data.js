@@ -9,7 +9,6 @@ const modified = D("modified_units.json");
 const tutorials = D("tutorials.json");
 const maps = D("maps.json");
 const meta = D("site_meta.json");
-const ptr = D("ptr_diffs.json");
 const patchesOld = D("patches.json");
 
 // ---- EN names / KO->EN glossary (lab-only; the real schema will carry both languages) ----
@@ -53,7 +52,6 @@ const overrides = {
 };
 
 const versions = [
-  { id: "v1.5", status: "ptr", date: null },
   { id: "v1.4.3", status: "current", date: null },
   { id: "v1.4.1", status: "previous", date: "2026-09-14" },
 ];
@@ -109,13 +107,6 @@ const U = (...names) => names.map((n) => ({ unit: n, unitKo: UKO[n], race: UM[n]
 diffs["v1.4.3"].forEach((d) => (d.unitKo = UKO[d.unit] || d.unit));
 // Hand-translated headline copy for the patch pages (KO source: docs/v1.4.3 patch notes.md, data/patches.json)
 const patches = [
-  {
-    version: "v1.5", status: "ptr", date: null,
-    titleKo: "PTR 테스트 빌드", titleEn: "PTR test build",
-    sumKo: "별도 모드로 먼저 배포되는 시험 변경입니다. 확정 전 수치는 바뀔 수 있습니다.",
-    sumEn: "Experimental changes shipped first as a separate mod. Values may change before they go live.",
-    ptr: ptr.filter((p) => p.unitId).map((p) => ({ unitId: p.unitId, race: p.category.toLowerCase(), title: p.title, changes: p.changes })),
-  },
   {
     version: "v1.4.3", status: "current", date: null,
     titleKo: "전투 역할 재정립과 스네이크 밴", titleEn: "Combat roles reworked, snake ban order",
@@ -200,8 +191,6 @@ p141.changes = p141.changes.map((c, i) => ({ ...c, en: en141.changes[i] }));
 const news = [
   { slug: "v1-4-3", version: "v1.4.3", kind: "patch", date: null,
     ko: "v1.4.3 패치: 스네이크 밴과 전투 역할 재정립", en: "v1.4.3 patch: snake ban and combat role rework" },
-  { slug: "v1-5-ptr", version: "v1.5", kind: "ptr", date: null,
-    ko: "v1.5 PTR: 보급고, 용기병, 파멸충 등 시험 변경", en: "v1.5 PTR: Supply Depot, Dragoon, Defiler and more under test" },
   { slug: "v1-4-1", version: "v1.4.1", kind: "patch", date: "2026-09-14",
     ko: "v1.4.1 패치: 선택형 편의성 HUD 통합", en: "v1.4.1 patch: optional convenience HUD" },
 ];

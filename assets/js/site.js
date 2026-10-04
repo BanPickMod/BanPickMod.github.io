@@ -46,7 +46,7 @@
     Object.keys(o.cost || {}).forEach((k) => { if (u.cost[k] !== o.cost[k]) changed["c_" + k] = u.cost[k]; });
     return { stats, cost, changed };
   };
-  const verLabel = (v) => ({ "v1.5": t("PTR", "PTR"), "v1.4.3": t("현재", "Current"), "v1.4.1": t("직전", "Previous") }[v] || "");
+  const verLabel = (v) => ({ "v1.4.3": t("현재", "Current"), "v1.4.1": t("직전", "Previous") }[v] || "");
   const fmtDate = (d) => d || t("날짜 미정", "Date TBD");
   const dunit = (d) => (L.lang === "ko" ? d.unitKo || d.unit : d.unit);
   window.H = { dunit, S, B, L, t, esc, ico, raceName, raceGlyph, uname, upair, tr, num, delta, unitAt, verLabel, fmtDate, store };
