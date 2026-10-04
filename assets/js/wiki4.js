@@ -22,7 +22,9 @@ const BLD = { "Command Center": "사령부", Barracks: "병영", "Tech Lab": "�
     if (o.hp !== undefined && o.hp !== u.hp) { ch.hp = u.hp; hp = o.hp; }
     if (o.attrs && o.attrs.join() !== u.attrs.join()) { ch.attrs = u.attrs.map(attrName).join(" · "); attrs = o.attrs; }
     const rng = Math.max(0, ...u.weapons.map((w) => w.range || 0));
-    const cost = u.cost || { minerals: null, gas: null, supply: null, time: null };
+    let cost = u.cost || { minerals: null, gas: null, supply: null, time: null };
+    if (o.cost) Object.keys(o.cost).forEach((k) => { if (cost[k] !== o.cost[k]) { ch[k] = cost[k]; } });
+    if (o.cost) cost = { ...cost, ...o.cost };
     return { ...u, cost, kind: "base", hp, attrs, ch, rng };
   };
   const extRow = (e) => {
@@ -60,7 +62,7 @@ const BLD = { "Command Center": "사령부", Barracks: "병영", "Tech Lab": "�
   const COLS = [
     { k: "name", g: "id", sticky: 1, ko: "유닛", en: "Unit", h: (r) => `<span class="uc">${r.icon ? `<img class="uico" src="${r.icon}" alt="" width="28" height="28">` : `<span class="rtag ${r.race}">${raceGlyph(r.race)}</span>`}<b>${esc(uname(r))}</b></span>` },
     { k: "src", g: "id", ko: "구분", en: "Type", h: (r) => `<span class="src ${r.kind}">${r.kind === "ext" ? "BPM" : t("기본", "Base")}</span>${r.kind === "ext" ? "" : ` <span class="mute">${grpName(r.group)}</span>`}` },
-    { k: "minerals", g: "cost", n: 1, ko: "광물", en: "Minerals", h: (r) => esc(fmt(r.cost && r.cost.minerals)) },
+    { k: "minerals", g: "cost", n: 1, ko: "광물", en: "Minerals", h: (r) => esc(fmt(r.cost && r.cost.minerals)) + wasHtml(r, "minerals") },
     { k: "gas", g: "cost", n: 1, ko: "가스", en: "Gas", h: (r) => esc(fmt(r.cost && r.cost.gas)) + wasHtml(r, "gas") },
     { k: "supply", g: "cost", n: 1, ko: "인구", en: "Supply", h: (r) => esc(fmt(r.cost && r.cost.supply)) + wasHtml(r, "supply") },
     { k: "time", g: "cost", n: 1, ko: "생산(초)", en: "Build (s)", h: (r) => esc(fmt(r.cost && r.cost.time)) + wasHtml(r, "time") },

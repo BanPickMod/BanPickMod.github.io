@@ -104,13 +104,32 @@
     return "assets/images/icons/" + g.unitId.replace(/_/g, "-") + ".png";
   };
   const cardIcon = (src, race) => (src ? `<img src="${src}" alt="" width="56" height="56" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'rtag ${race} big',textContent:'${raceGlyph(race)}'}))">` : `<span class="rtag ${race} big">${raceGlyph(race)}</span>`);
+  const upMatch = (u, x) => (st.race === "all" || x.race === st.race) && (!st.q || (x.unit + x.unitKo + u.ko + u.en).toLowerCase().includes(st.q.toLowerCase()));
+  const KIND = { research: ["연구", "Research"], ability: ["능력", "Ability"] };
+  const upHtml = (u) => `<li class="up"><span class="upi">${u.icon ? `<img src="assets/images/upgrades/${u.icon}.png" alt="" width="40" height="40">` : ico("sparkle")}</span>
+    <div><div class="uph"><b>${esc(t(u.ko, u.en))}</b><span class="upk">${t(KIND[u.kind][0], KIND[u.kind][1])}</span></div>
+    <p class="upm mono">${esc(t(u.whereKo, u.whereEn))}${u.cost !== "-" ? " · " + esc(u.cost) : ""}${u.time ? " · " + u.time + t("초", "s") : ""}${u.reqKo !== "-" ? " · " + t("필요", "needs") + " " + esc(t(u.reqKo, u.reqEn)) : ""}</p>
+    <p class="upe">${esc(t(u.effKo, u.effEn))}</p></div></li>`;
   const unitCards = (p) => {
     const by = new Map();
-    filt(p).forEach((d) => { const k = d.unit; if (!by.has(k)) by.set(k, { d, rows: [] }); by.get(k).rows.push(d); });
-    const cards = [...by.values()].map(({ d, rows }) => `<article class="ucard ${d.race}"><header>${cardIcon(iconFor(d), d.race)}<div><h3>${esc(dunit(d))}</h3><span class="mute">${raceName(d.race)}</span></div><span class="ucnt mono">${rows.length}</span></header>
-      <ul>${rows.map((x) => `<li><span class="ui">${esc(t(x.ko, x.en))}</span><span class="uv"><s class="mono">${esc(tr(x.before))}</s>${ico("arrow-right")}<b class="mono">${esc(tr(x.after))}</b></span>${dchip(x.before, x.after)}</li>`).join("")}</ul>
-      ${d.unitId ? `<a class="lnk" href="wiki.html#${d.unitId}">${t("위키에서 보기", "Open in wiki")}${ico("arrow-right")}</a>` : `<a class="lnk" href="wiki.html#${(B.base.find((b) => b.en === d.unit) || {}).id || ""}">${t("위키에서 보기", "Open in wiki")}${ico("arrow-right")}</a>`}</article>`).join("");
+    const get = (d) => { if (!by.has(d.unit)) by.set(d.unit, { d, rows: [], ups: [] }); return by.get(d.unit); };
+    filt(p).forEach((d) => get(d).rows.push(d));
+    (p.upgrades || []).forEach((u) => u.units.forEach((x) => { if (upMatch(u, x)) get(x).ups.push(u); }));
+    const order = { terran: 0, protoss: 1, zerg: 2 };
+    const cards = [...by.values()].sort((a, b) => order[a.d.race] - order[b.d.race]).map(({ d, rows, ups }) => {
+      const link = d.unitId || (B.base.find((x) => x.en === d.unit) || {}).id || "";
+      return `<article class="ucard ${d.race}"><header>${cardIcon(iconFor(d), d.race)}<div><h3>${esc(dunit(d))}</h3><span class="mute">${raceName(d.race)}</span></div><span class="ucnt mono">${rows.length + ups.length}</span></header>
+      ${rows.length ? `<ul>${rows.map((x) => `<li><span class="ui">${esc(t(x.ko, x.en))}</span><span class="uv"><s class="mono">${esc(tr(x.before))}</s>${ico("arrow-right")}<b class="mono">${esc(tr(x.after))}</b></span>${dchip(x.before, x.after)}</li>`).join("")}</ul>` : ""}
+      ${ups.length ? `<ul class="ups">${ups.map(upHtml).join("")}</ul>` : ""}
+      <a class="lnk" href="wiki.html#${link}">${t("위키에서 보기", "Open in wiki")}${ico("arrow-right")}</a></article>`;
+    }).join("");
     return cards ? `<div class="ucards">${cards}</div>` : `<p class="empty">${t("조건에 맞는 변경이 없습니다.", "No changes match the filter.")}</p>`;
+  };
+  const sysCards = (p) => (p.sys ? `<div class="p1-filter"><h2 class="h2">${t("시스템과 표시", "System and display")}</h2></div><div class="ucards">${p.sys.map((g) => `<article class="ucard sys"><header><span class="rtag big sysg">${ico("gear-six")}</span><div><h3>${esc(t(g.ko, g.en))}</h3></div><span class="ucnt mono">${g.items.length}</span></header><ul class="plain">${g.items.map((i) => `<li>${esc(t(i.ko, i.en))}</li>`).join("")}</ul></article>`).join("")}</div>` : "");
+  const upTable = (p) => {
+    const rs = (p.upgrades || []).flatMap((u) => u.units.filter((x) => upMatch(u, x)).map((x) => [u, x]));
+    if (!rs.length) return "";
+    return `<h3 class="uph3">${t("신규 연구·능력", "New researches and abilities")}</h3><div class="tscroll"><table class="tbl p2-tbl"><thead><tr><th>${t("대상", "Unit")}</th><th>${t("이름", "Name")}</th><th>${t("구분", "Type")}</th><th>${t("연구 위치", "Where")}</th><th>${t("비용", "Cost")}</th><th>${t("시간", "Time")}</th><th>${t("필요", "Needs")}</th><th>${t("효과", "Effect")}</th></tr></thead><tbody>${rs.map(([u, x]) => `<tr><td>${esc(t(x.unitKo, x.unit))}</td><td><b>${esc(t(u.ko, u.en))}</b></td><td>${t(KIND[u.kind][0], KIND[u.kind][1])}</td><td>${esc(t(u.whereKo, u.whereEn))}</td><td class="mono">${esc(u.cost)}</td><td class="mono">${u.time ? u.time + t("초", "s") : "-"}</td><td>${esc(t(u.reqKo, u.reqEn))}</td><td class="wrapc">${esc(t(u.effKo, u.effEn))}</td></tr>`).join("")}</tbody></table></div>`;
   };
   const ptrCards = (p) => {
     const gs = p.ptr.filter((g) => (st.race === "all" || g.race === st.race) && (!st.q || g.title.toLowerCase().includes(st.q.toLowerCase())));
@@ -135,13 +154,13 @@
           const sec = p.diffs ? `${hlFix(p)}<div class="p1-filter"><h2 class="h2">${t("유닛별 변경", "Changes by unit")}</h2>${toolbar}</div><div data-list></div>`
             : p.ptr ? `<div class="p1-filter"><h2 class="h2">${t("시험 중인 변경", "Changes under test")}</h2>${toolbar}</div><div data-list></div>`
             : `<div class="p1-filter"><h2 class="h2">${t("변경 사항", "Changes")}</h2></div><div data-list></div>`;
-          body.innerHTML = `<header class="p3-hero"><span class="mono p3-ver">${esc(p.version)}</span><h1>${esc(title(p))}</h1><p>${esc(sum(p))}</p><span class="mute">${esc(fmtDate(p.date))}</span>${p.version === "v1.4.3" ? `<a class="lnk" href="patch-notes-v1.4.3.html">${t("유닛 카드형 상세 패치 노트", "Detailed patch notes with unit cards")}${ico("arrow-up-right")}</a>` : ""}</header>
+          body.innerHTML = `<header class="p3-hero"><span class="mono p3-ver">${esc(p.version)}</span><h1>${esc(title(p))}</h1><p>${esc(sum(p))}</p><span class="mute">${esc(fmtDate(p.date))}</span>${p.noteKo ? `<span class="mute p4note">${esc(t(p.noteKo, p.noteEn))}</span>` : ""}${p.version === "v1.4.3" ? `<a class="lnk" href="patch-notes-v1.4.3.html">${t("유닛 카드형 상세 패치 노트", "Detailed patch notes with unit cards")}${ico("arrow-up-right")}</a>` : ""}</header>
             ${top.length ? `<div class="p3-top">${top.map((d) => `<div class="p3-t ${d.race}"><b>${esc(dunit(d))}</b><span>${esc(t(d.ko, d.en))}</span><div class="p3-v2"><s class="mono">${esc(tr(d.before))}</s><i></i><strong class="mono">${esc(tr(d.after))}</strong></div></div>`).join("")}</div>` : ""}${sec}`;
           const list = body.querySelector("[data-list]");
           const fill = () => {
             if (p.diffs) {
-              if (pv.view === "cards") list.innerHTML = unitCards(p);
-              else list.innerHTML = `<div class="tscroll"><table class="tbl p2-tbl"><thead><tr><th>${t("종족", "Race")}</th><th>${t("대상", "Unit")}</th><th>${t("항목", "Item")}</th><th>${t("이전", "Before")}</th><th>${t("이후", "After")}</th><th>Δ</th></tr></thead><tbody>${filt(p).map((d) => `<tr><td><span class="rtag ${d.race}">${raceGlyph(d.race)}</span></td><td>${esc(dunit(d))}</td><td>${esc(t(d.ko, d.en))}</td><td class="mono mute">${esc(tr(d.before))}</td><td class="mono"><b>${esc(tr(d.after))}</b></td><td>${dchip(d.before, d.after)}</td></tr>`).join("") || `<tr><td colspan="6" class="empty">${t("조건에 맞는 변경이 없습니다.", "No changes match the filter.")}</td></tr>`}</tbody></table></div>`;
+              if (pv.view === "cards") list.innerHTML = unitCards(p) + sysCards(p);
+              else list.innerHTML = `<div class="tscroll"><table class="tbl p2-tbl"><thead><tr><th>${t("종족", "Race")}</th><th>${t("대상", "Unit")}</th><th>${t("항목", "Item")}</th><th>${t("이전", "Before")}</th><th>${t("이후", "After")}</th><th>Δ</th></tr></thead><tbody>${filt(p).map((d) => `<tr><td><span class="rtag ${d.race}">${raceGlyph(d.race)}</span></td><td>${esc(dunit(d))}</td><td>${esc(t(d.ko, d.en))}</td><td class="mono mute">${esc(tr(d.before))}</td><td class="mono"><b>${esc(tr(d.after))}</b></td><td>${dchip(d.before, d.after)}</td></tr>`).join("") || `<tr><td colspan="6" class="empty">${t("조건에 맞는 변경이 없습니다.", "No changes match the filter.")}</td></tr>`}</tbody></table></div>${upTable(p)}`;
             } else if (p.ptr) list.innerHTML = ptrCards(p);
             else list.innerHTML = legacyCards(p);
           };

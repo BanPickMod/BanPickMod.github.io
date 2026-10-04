@@ -407,3 +407,15 @@ h1,h2,h3{font-family:var(--f-display);font-weight:900;text-transform:uppercase;l
 
 /* game button icons ship with dark backgrounds; give every icon the same dark tile so light theme stays consistent */
 :root[data-theme=light] .l3-tile img,:root[data-theme=light] .l4-u img,:root[data-theme=light] .uico,:root[data-theme=light] .pu img,:root[data-theme=light] .ucard header img,:root[data-theme=light] .w3-card img,:root[data-theme=light] .det-h img,:root[data-theme=light] .dk-gh img,:root[data-theme=light] .l3-track img{background:#12162b;border-radius:3px;padding:2px}
+
+/* patch cards: new researches and abilities */
+.ucard .ups{gap:6px;margin-top:2px}
+.ucard li.up{display:grid;grid-template-columns:44px 1fr;gap:12px;align-items:start;padding:10px;background:color-mix(in oklab,var(--panel2) 85%,transparent)}
+.upi{display:grid;place-items:center;width:44px;height:44px;background:#12162b;font-size:1.3rem;color:var(--pick)}
+.upi img{width:40px;height:40px;object-fit:contain}
+.uph{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.uph b{font:900 1.1rem var(--f-display);text-transform:uppercase}
+.upk{padding:1px 8px;background:var(--pick);color:var(--pick-ink);font:800 .72rem var(--f-display);text-transform:uppercase;letter-spacing:.05em}
+.upm{font-size:.76rem;color:var(--mute);margin-top:2px}.upe{font-size:.86rem;margin-top:4px}
+.uph3{margin:26px 0 8px;font-size:1.4rem}
+.p4note{display:block;max-width:70ch;font-size:.88rem}
+@media (max-width:520px){.ucard li.up{grid-template-columns:1fr}.upi{display:none}}
